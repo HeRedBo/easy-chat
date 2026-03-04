@@ -13,7 +13,7 @@ message UserEntity {
   int32   sex = 6;
 }
 
-// 心跳 req 与 respo
+// 心跳 req 与 resp
 message Request {
   string ping = 1;
 }
@@ -22,7 +22,7 @@ message Response {
   string pong = 1;
 }
 
-// 登录 req 和 respo
+// 登录 req 和 resp
 message LoginReq {
   string  phone = 1;
   string password = 2;
