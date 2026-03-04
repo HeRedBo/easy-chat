@@ -1,0 +1,47 @@
+syntax = "v1"
+
+info (
+    title: "用户服务的实例对象"
+    desc: "对外暴露用户查询/创建的HTTP接口，内部调用user-rpc"
+    author : "RedBo"
+)
+
+type User {
+    Id       string `json:"id"`
+    Mobile   string `json:"mobile"`
+    Nickname string `json:"nickname"`
+    Sex      byte   `json:"sex"`
+    Avatar   string `json:"avatar"`
+}
+
+type (
+    RegisterReq {
+        Phone       string `json:"phone"`
+        Password    string `json:"password"`
+        Nickname    string `json:"nickname"`
+        Sex         byte   `json:"sex"`
+        Avatar      string `json:"avatar"`
+    }
+    RegisterResp {
+        Token   string `json:"token"`
+        Expire  int64  `json:"expire"`
+    }
+)
+
+type (
+    LoginReq {
+        Phone       string `json:"phone"`
+        Password    string `json:"password"`
+    }
+    LoginResp {
+        Token   string `json:"token"`
+        Expire  int64  `json:"expire"`
+    }
+)
+
+type (
+    UserInfoReq {}
+    UserInfoResp {
+        Info User `json:"info"`
+    }
+)
