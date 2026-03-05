@@ -1,37 +1,41 @@
 syntax = "v1"
+
 info (
-  title: "用户API服务"
-  desc: "对外暴露用户查询/创建的HTTP接口，内部调用user-rpc"
-  author : "RedBo"
-  version: "1.0"
+	title:   "用户API服务"
+	desc:    "对外暴露用户查询/创建的HTTP接口，内部调用user-rpc"
+	author:  "RedBo"
+	version: "1.0"
 )
 
 import (
-  "domain.api"
+	"domain.api"
 )
+
 // -------------- user api v1 --------------
 // no need login
-@server(
-  prefix:v1/user
-  group:user
+@server (
+	prefix: v1/user
+	group:  user
 )
 service user {
-    @doc "用户注册"
-    @handler register
-    post /register(RegisterReq) returns (RegisterResp)
+	@doc "用户注册"
+	@handler register
+	post /register (RegisterReq) returns (RegisterResp)
 
-    @doc "用户登入"
-    @handler login
-    post /login (LoginReq) returns (LoginResp)
+	@doc "用户登入"
+	@handler login
+	post /login (LoginReq) returns (LoginResp)
 }
+
 //need login
-@server(
-    prefix: v1/user
-    group: user
-    jwt: JwtAuth
+@server (
+	prefix: v1/user
+	group:  user
+	jwt:    JwtAuth
 )
 service user {
-    @doc "获取用户信息"
-    @handler detail
-    get /user (UserInfoReq) returns (UserInfoResp)
+	@doc "获取用户信息"
+	@handler detail
+	get /user (UserInfoReq) returns (UserInfoResp)
 }
+
