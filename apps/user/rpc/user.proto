@@ -67,7 +67,7 @@ service User {
   rpc Ping(Request) returns (Response);
   rpc Login(LoginReq) returns(LoginResp);
   rpc Register(RegisterReq) returns(RegisterResp);
-  rpc GetUserInfo(GetUserInfoReq) returns(GetUserInfoReq);
+  rpc GetUserInfo(GetUserInfoReq) returns(GetUserInfoResp);
   rpc FindUser(FindUserReq) returns(FindUserResp);
 }
 
