@@ -29,8 +29,11 @@ var (
 
 type (
 	friendRequestsModel interface {
+		Trans(ctx context.Context, fn func(ctx context.Context,session sqlx.Session) error) error
 		Insert(ctx context.Context, data *FriendRequests) (sql.Result, error)
 		FindOne(ctx context.Context, id uint64) (*FriendRequests, error)
+		FindByReqUidAndUserId(ctx context.Context, rid, uid string) (*FriendRequests, error)
+		ListNoHandler(ctx context.Context, userId string) ([]*FriendRequests, error)
 		Update(ctx context.Context, data *FriendRequests) error
 		Delete(ctx context.Context, id uint64) error
 	}
@@ -59,6 +62,15 @@ func newFriendRequestsModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.
 	}
 }
 
+
+func (m *defaultFriendRequestsModel) Trans(ctx context.Context, fn func(ctx context.Context,
+	session sqlx.Session) error) error {
+	return m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		return fn(ctx, session)
+	})
+}
+
+
 func (m *defaultFriendRequestsModel) Delete(ctx context.Context, id uint64) error {
 	friendRequestsIdKey := fmt.Sprintf("%s%v", cacheFriendRequestsIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
@@ -80,6 +92,37 @@ func (m *defaultFriendRequestsModel) FindOne(ctx context.Context, id uint64) (*F
 		return &resp, nil
 	case sqlc.ErrNotFound:
 		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+
+func (m *defaultFriendRequestsModel) FindByReqUidAndUserId(ctx context.Context, rid, uid string) (*FriendRequests, error) {
+	query := fmt.Sprintf("select %s from %s where `req_uid` = ? and `user_id` = ?", friendRequestsRows, m.table)
+
+	var resp FriendRequests
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, rid, uid)
+
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func (m *defaultFriendRequestsModel) ListNoHandler(ctx context.Context, userId string) ([]*FriendRequests, error) {
+	query := fmt.Sprintf("select %s from %s where `handle_result` = 1 and `user_id` = ?", friendRequestsRows, m.table)
+
+	var resp []*FriendRequests
+	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, userId)
+
+	switch err {
+	case nil:
+		return resp, nil
 	default:
 		return nil, err
 	}
