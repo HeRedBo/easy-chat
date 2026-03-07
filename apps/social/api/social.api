@@ -1,0 +1,10 @@
+syntax = "v1"
+
+info(
+    title: "社交服务的实例对象"
+    desc: "社交服务API的实例对象"
+    author: "RedBoHe"
+    email: "hhbjkd@163.com"
+)
+
+

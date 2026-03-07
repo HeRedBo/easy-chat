@@ -6,7 +6,7 @@ ListenOn: 0.0.0.0:8080
 #  Key: user.rpc
 
 Mysql:
-  DataSource: root:root@tcp(127.0.0.1:3306)/go_zero_demo?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:root@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
   MaxOpenConns: 10 # 最大打开连接数
   MaxIdleConns: 5  # 最大空闲连接数
   ConnMaxLifetime: 300s # 连接最大存活时间
