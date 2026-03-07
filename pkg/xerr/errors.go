@@ -6,7 +6,7 @@ func New(code int, msg string) error {
 	return errors.New(code, msg)
 }
 
-func NewMsgErr(msg string) error {
+func NewMsg(msg string) error {
 	return errors.New(SERVER_COMMON_ERROR, msg)
 }
 

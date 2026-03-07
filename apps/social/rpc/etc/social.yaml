@@ -1,12 +1,12 @@
 Name: social.rpc
-ListenOn: 0.0.0.0:8081
-#Etcd:
-#  Hosts:
-#  - 127.0.0.1:2379
-#  Key: social.rpc
+ListenOn: 0.0.0.0:8091
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: social.rpc
 
 Mysql:
-  DataSource: root:root@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:admin123@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
   MaxOpenConns: 10 # 最大打开连接数
   MaxIdleConns: 5  # 最大空闲连接数
   ConnMaxLifetime: 300s # 连接最大存活时间
@@ -14,4 +14,4 @@ Mysql:
 Cache:
   - Host: 127.0.0.1:6379
     Type: node
-    Pass:
+    Pass: "123456"
