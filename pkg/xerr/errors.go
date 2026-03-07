@@ -6,7 +6,7 @@ func New(code int, msg string) error {
 	return errors.New(code, msg)
 }
 
-func NewMsg(msg string) error {
+func NewMsgErr(msg string) error {
 	return errors.New(SERVER_COMMON_ERROR, msg)
 }
 
@@ -16,4 +16,8 @@ func NewDBErr() error {
 
 func NewInternalErr() error {
 	return errors.New(SERVER_COMMON_ERROR, ErrMsg(SERVER_COMMON_ERROR))
+}
+
+func NewReqParamErr() error {
+	return errors.New(REQUEST_PARAM_ERROR, ErrMsg(REQUEST_PARAM_ERROR))
 }

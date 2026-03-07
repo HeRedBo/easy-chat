@@ -15,12 +15,12 @@ Mysql:
 Redisx:
   Host: 127.0.0.1:6379
   Type: node
-  Pass:
+  Pass: "123456"
 
 Cache:
   - Host: 127.0.0.1:6379
     Type: node
-    Pass:
+    Pass: "123456"
 
 Jwt:
   AccessSecret: redbo.com
