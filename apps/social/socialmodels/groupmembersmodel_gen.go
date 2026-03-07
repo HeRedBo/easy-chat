@@ -30,6 +30,9 @@ type (
 	groupMembersModel interface {
 		Insert(ctx context.Context, data *GroupMembers) (sql.Result, error)
 		FindOne(ctx context.Context, id uint64) (*GroupMembers, error)
+		FindByGroudIdAndUserId(ctx context.Context, userId, groupId string)  (*GroupMembers, error)
+		ListByUserId(ctx context.Context, userId string) ([]*GroupMembers, error)
+		ListByGroupId(ctx context.Context, groupId string) ([]*GroupMembers, error)
 		Update(ctx context.Context, data *GroupMembers) error
 		Delete(ctx context.Context, id uint64) error
 	}
@@ -47,7 +50,7 @@ type (
 		JoinTime    sql.NullTime   `db:"join_time"`    // 入群时间
 		JoinSource  sql.NullInt64  `db:"join_source"`  // 入群来源方式
 		InviterUid  sql.NullString `db:"inviter_uid"`  // 入群邀请人
-		OperatorUid sql.NullString `db:"operator_uid"` // 操作人
+		OperatorUid string `db:"operator_uid"` // 操作人
 	}
 )
 
@@ -83,6 +86,50 @@ func (m *defaultGroupMembersModel) FindOne(ctx context.Context, id uint64) (*Gro
 		return nil, err
 	}
 }
+
+
+func (m *defaultGroupMembersModel) FindByGroudIdAndUserId(ctx context.Context, userId, groupId string)  (*GroupMembers, error){
+	query := fmt.Sprintf("select %s from %s where `user_id` = ? and `group_id` = ?", groupMembersRows, m.table)
+
+	var resp GroupMembers
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, userId, groupId)
+	switch err {
+	case nil:
+		return &resp, nil
+	default:
+		return nil, err
+	}
+
+}
+
+func (m *defaultGroupMembersModel) ListByUserId(ctx context.Context, userId string) ([]*GroupMembers, error){
+	query := fmt.Sprintf("select %s from %s where `user_id` = ?", groupMembersRows, m.table)
+
+	var resp []*GroupMembers
+	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, userId)
+
+	switch err {
+	case nil:
+		return resp, nil
+	default:
+		return nil, err
+	}
+}
+
+func (m *defaultGroupMembersModel) ListByGroupId(ctx context.Context, groupId string) ([]*GroupMembers, error){
+	query := fmt.Sprintf("select %s from %s where `group_id` = ?", groupMembersRows, m.table)
+
+	var resp []*GroupMembers
+	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, groupId)
+
+	switch err {
+	case nil:
+		return resp, nil
+	default:
+		return nil, err
+	}
+}
+
 
 func (m *defaultGroupMembersModel) Insert(ctx context.Context, data *GroupMembers) (sql.Result, error) {
 	groupMembersIdKey := fmt.Sprintf("%s%v", cacheGroupMembersIdPrefix, data.Id)

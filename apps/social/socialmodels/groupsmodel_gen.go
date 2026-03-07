@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
@@ -28,8 +29,10 @@ var (
 
 type (
 	groupsModel interface {
+		Trans(ctx context.Context, fn func(context.Context, sqlx.Session) error) error
 		Insert(ctx context.Context, data *Groups) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Groups, error)
+		ListByGroupIds(ctx context.Context, ids []string) ([]*Groups, error)
 		Update(ctx context.Context, data *Groups) error
 		Delete(ctx context.Context, id string) error
 	}
@@ -61,6 +64,12 @@ func newGroupsModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) 
 	}
 }
 
+func (m *defaultGroupsModel) Trans(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
+	return m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		return fn(ctx, session)
+	})
+}
+
 func (m *defaultGroupsModel) Delete(ctx context.Context, id string) error {
 	groupsIdKey := fmt.Sprintf("%s%v", cacheGroupsIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
@@ -86,6 +95,36 @@ func (m *defaultGroupsModel) FindOne(ctx context.Context, id string) (*Groups, e
 		return nil, err
 	}
 }
+
+func (m *defaultGroupsModel) ListByGroupIds(ctx context.Context, ids []string) ([]*Groups, error) {
+	// 处理空 ID 列表的情况
+	if len(ids) == 0 {
+		return []*Groups{}, nil
+	}
+	
+	// 构建参数占位符
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	// 构建查询语句
+	query := fmt.Sprintf("select %s from %s where `id` in (%s)",
+		groupsRows, m.table, strings.Join(placeholders, ","))
+	var resp []*Groups
+	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, args...)
+	// idStr := strings.Join(ids, "','")
+	//err := m.QueryRowsNoCacheCtx(ctx, &resp, query, idStr)
+	switch err {
+	case nil:
+		return resp, nil
+	default:
+		return nil, err
+	}
+}
+
 
 func (m *defaultGroupsModel) Insert(ctx context.Context, data *Groups) (sql.Result, error) {
 	groupsIdKey := fmt.Sprintf("%s%v", cacheGroupsIdPrefix, data.Id)

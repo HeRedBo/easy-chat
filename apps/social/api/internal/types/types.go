@@ -88,7 +88,7 @@ type GroupPutInHandleResp struct {
 }
 
 type GroupPutInListRep struct {
-	GroupId string `json:"group_id,omitempty"`
+	GroupId string `form:"group_id,omitempty"`
 }
 
 type GroupPutInListResp struct {
@@ -119,11 +119,11 @@ type GroupRequests struct {
 }
 
 type GroupUserListReq struct {
-	GroupId string `json:"group_id,omitempty"`
+	GroupId string `form:"group_id,omitempty"`
 }
 
 type GroupUserListResp struct {
-	List []*GroupMembers `json:"List,omitempty"`
+	List []*GroupMembers `path:"List,omitempty"`
 }
 
 type Groups struct {

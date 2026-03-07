@@ -8,6 +8,9 @@ import (
 
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/types"
+	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
+	"github.com/HeRedBo/easy-chat/pkg/constants"
+	"github.com/HeRedBo/easy-chat/pkg/ctxdata"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,6 +32,17 @@ func NewGroupPutInHandleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 
 func (l *GroupPutInHandleLogic) GroupPutInHandle(req *types.GroupPutInHandleRep) (resp *types.GroupPutInHandleResp, err error) {
 	// todo: add your logic here and delete this line
+	_, err = l.svcCtx.Social.GroupPutInHandle(l.ctx, &socialclient.GroupPutInHandleReq{
+		GroupReqId:   req.GroupReqId,
+		GroupId:      req.GroupId,
+		HandleUid:    ctxdata.GetUid(l.ctx),
+		HandleResult: req.HandleResult,
+	})
 
+	if constants.HandlerResult(req.HandleResult) != constants.PassHandlerResult {
+		return
+	}
+
+	// TODO: 通过后的业务
 	return
 }

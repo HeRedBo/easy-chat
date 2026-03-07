@@ -118,7 +118,7 @@ type (
 
 type (
 	GroupPutInListRep {
-		GroupId string `json:"group_id,omitempty"`
+		GroupId string `form:"group_id,omitempty"`
 	}
 	GroupPutInListResp {
 		List []*GroupRequests `json:"list,omitempty"`
@@ -134,10 +134,10 @@ type (
 
 type (
 	GroupUserListReq {
-		GroupId string `json:"group_id,omitempty"`
+		GroupId string `form:"group_id,omitempty"`
 	}
 	GroupUserListResp {
-		List []*GroupMembers `json:"List,omitempty"`
+		List []*GroupMembers `path:"List,omitempty"`
 	}
 )
 

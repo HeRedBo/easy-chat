@@ -28,8 +28,12 @@ var (
 
 type (
 	groupRequestsModel interface {
+		Trans(ctx context.Context, fn func(context.Context, sqlx.Session) error) error
+
 		Insert(ctx context.Context, data *GroupRequests) (sql.Result, error)
 		FindOne(ctx context.Context, id uint64) (*GroupRequests, error)
+		FindByGroupIdAndReqId(ctx context.Context, groupId, reqId string) (*GroupRequests, error)
+		ListNoHandler(ctx context.Context, groupId string) ([]*GroupRequests, error)
 		Update(ctx context.Context, data *GroupRequests) error
 		Delete(ctx context.Context, id uint64) error
 	}
@@ -60,6 +64,12 @@ func newGroupRequestsModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.O
 	}
 }
 
+func (m *defaultGroupRequestsModel) Trans(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
+	return m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		return fn(ctx, session)
+	})
+}
+
 func (m *defaultGroupRequestsModel) Delete(ctx context.Context, id uint64) error {
 	groupRequestsIdKey := fmt.Sprintf("%s%v", cacheGroupRequestsIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
@@ -81,6 +91,34 @@ func (m *defaultGroupRequestsModel) FindOne(ctx context.Context, id uint64) (*Gr
 		return &resp, nil
 	case sqlc.ErrNotFound:
 		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+
+func (m *defaultGroupRequestsModel) FindByGroupIdAndReqId(ctx context.Context, groupId, reqId string) (*GroupRequests, error) {
+	query := fmt.Sprintf("select %s from %s where `req_id` = ? and `group_id` = ?", groupRequestsRows, m.table)
+
+	var resp GroupRequests
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, reqId, groupId)
+	switch err {
+	case nil:
+		return &resp, nil
+	default:
+		return nil, err
+	}
+}
+
+func (m *defaultGroupRequestsModel) ListNoHandler(ctx context.Context, groupId string) ([]*GroupRequests, error) {
+	query := fmt.Sprintf("select %s from %s where `group_id` = ? and `handle_result` = 1 ", groupRequestsRows, m.table)
+
+	var resp []*GroupRequests
+	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, groupId)
+
+	switch err {
+	case nil:
+		return resp, nil
 	default:
 		return nil, err
 	}

@@ -8,6 +8,8 @@ import (
 
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/types"
+	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
+	"github.com/HeRedBo/easy-chat/pkg/ctxdata"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,6 +31,16 @@ func NewCreateGroupLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Creat
 
 func (l *CreateGroupLogic) CreateGroup(req *types.GroupCreateReq) (resp *types.GroupCreateResp, err error) {
 	// todo: add your logic here and delete this line
+	uid := ctxdata.GetUid(l.ctx)
 
+	// 创建群
+	_, err = l.svcCtx.Social.GroupCreate(l.ctx, &socialclient.GroupCreateReq{
+		Name:       req.Name,
+		Icon:       req.Icon,
+		CreatorUid: uid,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return
 }
