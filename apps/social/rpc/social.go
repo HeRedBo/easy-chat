@@ -8,6 +8,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/server"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/social"
+	"github.com/HeRedBo/easy-chat/pkg/interceptor/rpcserver"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -32,6 +33,7 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	s.AddUnaryInterceptors(rpcserver.LogInterceptor)
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

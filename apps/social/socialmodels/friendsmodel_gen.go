@@ -15,13 +15,14 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/gookit/goutil/dump"
 )
 
 var (
 	friendsFieldNames          = builder.RawFieldNames(&Friends{})
 	friendsRows                = strings.Join(friendsFieldNames, ",")
-	friendsRowsExpectAutoSet   = strings.Join(stringx.Remove(friendsFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
-	friendsRowsWithPlaceHolder = strings.Join(stringx.Remove(friendsFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
+	friendsRowsExpectAutoSet   = strings.Join(stringx.Remove(friendsFieldNames, "`id`", "`create_at`", "`create_time`", "`update_at`", "`update_time`"), ",")
+	friendsRowsWithPlaceHolder = strings.Join(stringx.Remove(friendsFieldNames, "`id`", "`create_at`", "`create_time`", "`update_at`", "`update_time`",), "=?,") + "=?"
 
 	cacheFriendsIdPrefix = "cache:friends:id:"
 )
@@ -136,8 +137,8 @@ func (m *defaultFriendsModel) Inserts(ctx context.Context, session sqlx.Session,
 	// insert into tablename values(数据), (数据)
 	sql.WriteString(fmt.Sprintf("insert into %s (%s) values ", m.table, friendsRowsExpectAutoSet))
 	for i, v := range data {
-		sql.WriteString("(?,?,?,?,?)")
-		args = append(args, v.UserId, v.FriendUid, v.Remark, v.AddSource)
+		sql.WriteString("(?, ?, ?, ?, ?)")
+		args = append(args, v.UserId, v.FriendUid, v.Remark, v.AddSource, v.CreatedAt)
 		if i == len(data)-1 {
 			break
 		}

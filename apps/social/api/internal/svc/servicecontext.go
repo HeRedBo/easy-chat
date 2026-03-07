@@ -20,6 +20,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config: c,
 		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc)),
-		Social: socialclient.NewSocial(zrpc.MustNewClient(c.UserRpc)),
+		Social: socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc)),
 	}
 }
