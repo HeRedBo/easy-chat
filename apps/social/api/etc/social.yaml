@@ -1,0 +1,20 @@
+Name: social
+Host: 0.0.0.0
+Port: 8881
+
+UserRpc:
+  Endpoints:
+    - 127.0.0.1:8080
+  Retries: 3           # 纯数字，无引号
+  LoadBalance: random  # 字符串，可选值：random/roundrobin
+
+
+SocialRpc:
+  Endpoints:
+    - 127.0.0.1:8081
+  Retries: 3           # 纯数字，无引号
+  LoadBalance: random  # 字符串，可选值：random/roundrobin
+
+JwtAuth:
+  AccessSecret: redbo.com
+  AccessExpire: 8640000
