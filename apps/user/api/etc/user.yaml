@@ -2,12 +2,18 @@ Name: user
 Host: 0.0.0.0
 Port: 8888
 Mode: dev
-# 核心：用UserRpc作为父节点，替代之前的RpcClientConf
-userRpc:
-  Etcd:
-    Hosts:
-      -192.168.117.24:3379
-    Key: user.rpc
+
+UserRpc:
+  Endpoints:
+    - 127.0.0.1:8080
+  Retries: 3           # 纯数字，无引号
+  LoadBalance: random  # 字符串，可选值：random/roundrobin
+
+#UserRpc:
+#  Etcd:
+#    Hosts:
+#      -192.168.117.24:3379
+#    Key: user.rpc
 
 JwtAuth:
   AccessSecret: redbo.com

@@ -5,7 +5,9 @@ go 1.23.2
 require (
 	github.com/edwingeng/wuid v1.0.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/gookit/goutil v0.7.3
 	github.com/jinzhu/copier v0.4.0
+	github.com/pkg/errors v0.9.1
 	github.com/zeromicro/go-zero v1.10.0
 	github.com/zeromicro/x v0.0.0-20240408115609-8224c482b07e
 	golang.org/x/crypto v0.41.0
