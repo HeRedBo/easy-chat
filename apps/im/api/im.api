@@ -1,0 +1,11 @@
+syntax = "v1"
+
+info(
+    title: "IM 消息服务"
+    desc: "im 消息APi服务"
+    author: "Redbo He"
+    email: "hhbjid@163.com"
+    version: "1.0"
+)
+
+// --------------------------- im  api v1 -------------------------------
