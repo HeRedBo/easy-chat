@@ -7,6 +7,11 @@ type Config struct {
 
 	ListenOn string
 
+	Mongo struct {
+		Url string
+		Db  string
+	}
+
 	JwtAuth struct {
 		AccessSecret string
 	}

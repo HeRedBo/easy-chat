@@ -7,14 +7,14 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  # bin = "./tmp/main"
   # macOS/Linux 版本
-  # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
-  bin = "./tmp/main.exe" # windows 调整
-  # Windows 版本 核心：仅执行 go run .，无二进制相关配置
-  cmd = "go build -o ./tmp/main.exe ."
+  bin = "./tmp/main"
+  # cmd = "lsof -ti:8090 | xargs kill -9 >/dev/null 2>&1; go run ."
+  cmd = "go build -o ./tmp/main ."
+  # Windows
+  # bin = "./tmp/main.exe" # windows 调整
+  # cmd = "go build -o ./tmp/main.exe ."
   delay = 1000
-  stop_on_change = true  # 重启前停止旧进程
   entrypoint = []
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "logs", "node_modules", ".git"]
   exclude_file = []
@@ -27,6 +27,7 @@ tmp_dir = "tmp"
   include_ext = ["go", "yaml", "yml" ,"tpl", "tmpl", "html"]
   include_file = []
   kill_delay = "3000ms"  # 延长杀死旧进程的等待时间（确保端口释放）
+  stop_on_change = true  # 重启前停止旧进程
   log = "build-errors.log"
   poll = false
   poll_interval = 0

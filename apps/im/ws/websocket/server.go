@@ -86,12 +86,15 @@ func (s *Server) addConn(conn *Conn, req *http.Request) {
 			return
 		}
 	}
+
 	s.connToUser[conn] = uid
 	s.userToConn[uid] = conn
 }
 
+// 根据连接对象执行任务
 func (s *Server) handleConn(conn *Conn) {
-
+	uids := s.GetUsers(conn)
+	conn.Uid = uids[0]
 	// 5. 循环读取客户端消息
 	for {
 		// 读取消息（类型：文本/二进制/Ping/Pong/Close）
@@ -107,7 +110,8 @@ func (s *Server) handleConn(conn *Conn) {
 		err = json.Unmarshal(msg, &message)
 		if err != nil {
 			s.Errorf("json unmarshal err %v, msg %v", err, string(msg))
-			return
+			_ = s.Send(NewErrMessage(err), conn)
+			continue
 		}
 		// 依据消息进行处理
 		switch message.FrameType {
@@ -140,6 +144,13 @@ func (s *Server) GetConn(uid string) *Conn {
 	defer s.RWMutex.RUnlock()
 
 	return s.userToConn[uid]
+}
+
+func (s *Server) GetUser(conn *Conn) string {
+	s.RWMutex.RLock()
+	defer s.RWMutex.RUnlock()
+
+	return s.connToUser[conn]
 }
 
 func (s *Server) GetCons(uids ...string) []*Conn {

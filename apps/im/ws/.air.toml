@@ -9,10 +9,12 @@ tmp_dir = "tmp"
   args_bin = []
   # bin = "./tmp/main"
   # macOS/Linux 版本
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
   # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
-  bin = "./tmp/main.exe" # windows 调整
+  # bin = "./tmp/main.exe" # windows 调整
   # Windows 版本 核心：仅执行 go run .，无二进制相关配置
-  cmd = "go build -o ./tmp/main.exe ."
+  # cmd = "go build -o ./tmp/main.exe ."
 
   delay = 1000   # 文件修改后延迟1秒编译
   entrypoint = []

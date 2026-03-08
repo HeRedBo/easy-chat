@@ -34,3 +34,4 @@ go.work.sum
 .idea/
 /apps/user/api/tmp/
 /apps/user/rpc/tmp/
+apps/im/ws/tmp/

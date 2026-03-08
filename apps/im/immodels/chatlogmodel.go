@@ -1,4 +1,4 @@
-package model
+package immodels
 
 import "github.com/zeromicro/go-zero/core/stores/mon"
 
