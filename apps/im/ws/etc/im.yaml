@@ -5,7 +5,11 @@ ListenOn: 0.0.0.0:8093
 #    - 127.0.0.1:2379
 #  Key: im.rpc
 
-
 Mongo:
-  Url: "mongodb://root:easy-chat@192.168.117.24:47017"
+  Url: "mongodb://admin:admin123@127.0.0.1:27017/"
   Db: easy-chat
+
+MsgChatTransfer:
+  Addrs:
+    - 127.0.0.1:9092
+  Topic: msgChatTransfer

@@ -12,12 +12,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// Chat 针对用户处理的消息
 func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
 		var data ws.Chat
 		if err := mapstructure.Decode(msg.Data, &data); err != nil {
-			_ = srv.Send(websocket.NewErrMessage(err), conn)
+			err := srv.Send(websocket.NewErrMessage(err), conn)
+			if err != nil {
+				return
+			}
 			return
 		}
 
@@ -34,7 +36,7 @@ func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 		err := srvCtx.MsgChatTransfer.Push(&mq.MsgChatTransfer{
 			ChatType:       data.ChatType,
 			ConversationId: data.ConversationId,
-			SendId:         conn.Uid,
+			SendId:         data.SendId,
 			RecvId:         data.RecvId,
 			MType:          data.MType,
 			Content:        data.Content,
@@ -48,27 +50,14 @@ func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 			}
 		}
 
-		//// 处理私聊信息
-		//switch data.ChatType {
-		//case constants.SingleChatType:
-		//	err := logic.NewConversation(context.Background(), srv, srvCtx).SingleChat(&data, conn.Uid)
-		//	if err != nil {
-		//		err = srv.Send(websocket.NewErrMessage(err), conn)
-		//		return
-		//	}
 		//
-		//	err = srv.SendByUserId(websocket.NewMessage(conn.Uid, ws.Chat{
-		//		ConversationId: data.ConversationId,
-		//		ChatType:       data.ChatType,
-		//		SendId:         conn.Uid,
-		//		RecvId:         data.RecvId,
-		//		SendTime:       time.Now().UnixMilli(),
-		//		Msg:            data.Msg,
-		//	}), data.RecvId)
+		//l := logic.NewUserLogic(context.Background(), srv, srvCtx)
+		//
+		//if err := l.Chat(&data, srv.GetUser(conn)); err != nil {
+		//	err := srv.Send(websocketx.NewErrMessage(err), conn)
 		//	if err != nil {
 		//		return
 		//	}
 		//}
-
 	}
 }

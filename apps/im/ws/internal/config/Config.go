@@ -15,4 +15,9 @@ type Config struct {
 	JwtAuth struct {
 		AccessSecret string
 	}
+
+	MsgChatTransfer struct {
+		Topic string
+		Addrs []string
+	}
 }

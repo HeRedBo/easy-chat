@@ -1,38 +1,20 @@
 package mq
 
-import (
-	"flag"
-	"fmt"
+import "github.com/HeRedBo/easy-chat/pkg/constants"
 
-	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/config"
-	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/handler"
-	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/svc"
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/core/service"
-)
-
-var configFile = flag.String("f", "etc/task.yaml", "the config file")
-
-func main() {
-	flag.Parse()
-
-	var c config.Config
-	conf.MustLoad(*configFile, &c)
-
-	if err := c.SetUp(); err != nil {
-		panic(err)
-	}
-
-	serviceGroup := service.NewServiceGroup()
-	defer serviceGroup.Stop()
-
-	ctx := svc.NewServiceContext(c)
-	listen := handler.NewListen(ctx)
-
-	for _, s := range listen.Services() {
-		serviceGroup.Add(s)
-	}
-	fmt.Println("Starting mqueue server at ...")
-
-	serviceGroup.Start()
+type MsgChatTransfer struct {
+	// 会话类型 1、私聊 、2.群聊
+	ChatType constants.ChatType `json:"chat_type"`
+	// 会话ID
+	ConversationId string `json:"conversation_id"`
+	// 发送者
+	SendId string `json:"send_id"`
+	// 接收者
+	RecvId string `json:"recv_id"`
+	// 消息类型
+	constants.MType `json:"msg_type,omitempty"`
+	// 消息内容
+	Content string `json:"content"`
+	// 发送时间
+	SendTime int64 `json:"send_time"`
 }
