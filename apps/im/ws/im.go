@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	handler "github.com/HeRedBo/easy-chat/apps/im/ws/internal"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/internal/config"
+	"github.com/HeRedBo/easy-chat/apps/im/ws/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/websocket"
 	"github.com/zeromicro/go-zero/core/conf"
@@ -18,12 +18,15 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	ctx := svc.NewServiceContext(c)
+	srv := websocket.NewServer(c.ListenOn,
+		websocket.WithServerAuthentication(handler.NewJwtAuth(ctx)),
+	)
 
-	srv := websocket.NewServer(c.ListenOn)
 	defer srv.Stop()
 
-	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(srv, ctx)
+
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	srv.Start()
 }

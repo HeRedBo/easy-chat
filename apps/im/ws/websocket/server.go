@@ -47,7 +47,7 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// 添加鉴权
-	if !s.authentication.Auth(s, w, r) {
+	if !s.authentication.Auth(w, r) {
 		s.Infof("Websocket server authentication failed")
 		return
 	}
