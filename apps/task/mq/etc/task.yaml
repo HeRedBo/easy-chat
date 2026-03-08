@@ -1,0 +1,22 @@
+Name: task.mq
+ListenOn: 0.0.0.0:8094
+
+Mysql:
+  DataSource: root:root@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
+  MaxOpenConns: 10 # 最大打开连接数
+  MaxIdleConns: 5  # 最大空闲连接数
+  ConnMaxLifetime: 300s # 连接最大存活时间
+
+MsgChatTransfer:
+  Name: MsgChatTransfer
+  Brokers:
+    - 127.0.0.1:9092
+  Group: kafka
+  Topic: msgChatTransfer
+  Offset: first # "first" | "last"
+  Consumers: 1
+
+Cache:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass:

@@ -1,6 +1,13 @@
 Name: im.rpc
 ListenOn: 0.0.0.0:8093
 
+Mongo:
+  Url: "mongodb://root:easy-chat@192.168.117.24:47017"
+  Db: easy-chat
+
+
+
+
 JwtAuth:
   AccessSecret: redbo.com
 
