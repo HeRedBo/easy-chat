@@ -10,6 +10,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/socialmodels"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
 	"github.com/HeRedBo/easy-chat/pkg/xerr"
+	"github.com/gookit/goutil/dump"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -32,6 +33,7 @@ func NewFriendPutInLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Frien
 func (l *FriendPutInLogic) FriendPutIn(in *social.FriendPutInReq) (*social.FriendPutInResp, error) {
 	// todo: add your logic here and delete this line
 	// 申请人是否与目标是好友关系
+	dump.P(in)
 	friends, err := l.svcCtx.FriendsModel.FindByUidAndFid(l.ctx, in.UserId, in.ReqUid)
 	if err != nil && err != socialmodels.ErrNotFound {
 		return nil, errors.Wrapf(xerr.NewDBErr(), "find friends by uid and fid err %v req %v ", err, in)
