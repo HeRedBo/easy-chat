@@ -20,7 +20,7 @@ func (*authentication) Auth(s *Server, w http.ResponseWriter, r *http.Request) b
 func (*authentication) UserId(r *http.Request) string {
 	query := r.URL.Query()
 	if query != nil && query["user_id"] != nil {
-		return fmt.Sprintf("%s", query["user_id"])
+		return fmt.Sprintf("%v", query.Get("user_id"))
 	}
-	return fmt.Sprintf("%s", time.Now().UnixMilli())
+	return fmt.Sprintf("%v", time.Now().UnixMilli())
 }

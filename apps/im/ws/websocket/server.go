@@ -32,9 +32,9 @@ func NewServer(addr string, opts ...ServerOptions) *Server {
 		authentication: opt.Authentication,
 		connToUser:     make(map[*websocket.Conn]string),
 		userToConn:     make(map[string]*websocket.Conn),
-
-		upgrader: websocket.Upgrader{},
-		Logger:   logx.WithContext(context.Background()),
+		routes:         make(map[string]HandlerFunc),
+		upgrader:       websocket.Upgrader{},
+		Logger:         logx.WithContext(context.Background()),
 	}
 }
 
@@ -51,7 +51,7 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 		s.Infof("Websocket server authentication failed")
 		return
 	}
-
+	// 1. 将HTTP连接升级为WebSocket连接
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		s.Error("upgrader.Upgrade err: %v", err)
@@ -72,7 +72,10 @@ func (s *Server) addConn(conn *websocket.Conn, req *http.Request) {
 	// 验证用户是否之前登入过
 	if c := s.userToConn[uid]; c != nil {
 		// 关闭之前的连接
-		c.Close()
+		err := c.Close()
+		if err != nil {
+			return
+		}
 	}
 	s.connToUser[conn] = uid
 	s.userToConn[uid] = conn
@@ -137,7 +140,6 @@ func (s *Server) GetUsers(cones ...*websocket.Conn) []string {
 
 	s.RWMutex.RLock()
 	defer s.RWMutex.RUnlock()
-
 	var res []string
 	if len(cones) == 0 {
 		// 获取全部
