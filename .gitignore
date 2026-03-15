@@ -35,3 +35,5 @@ go.work.sum
 /apps/user/api/tmp/
 /apps/user/rpc/tmp/
 apps/im/ws/tmp/
+apps/im/api/tmp
+apps/im/rpc/tmp

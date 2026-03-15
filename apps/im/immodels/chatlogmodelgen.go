@@ -7,10 +7,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type chatLogModel interface {
@@ -18,6 +20,7 @@ type chatLogModel interface {
 	FindOne(ctx context.Context, id string) (*ChatLog, error)
 	Update(ctx context.Context, data *ChatLog) (*mongo.UpdateResult, error)
 	Delete(ctx context.Context, id string) (int64, error)
+	ListBySendTime(ctx context.Context, conversationId string, startSendTime, endSendTime, limit int64) ([]*ChatLog, error)
 }
 
 type defaultChatLogModel struct {
@@ -30,7 +33,7 @@ func newDefaultChatLogModel(conn *mon.Model) *defaultChatLogModel {
 
 func (m *defaultChatLogModel) Insert(ctx context.Context, data *ChatLog) error {
 	if data.ID.IsZero() {
-		data.ID = primitive.NewObjectID()
+		data.ID = bson.NewObjectID()
 		data.CreateAt = time.Now()
 		data.UpdateAt = time.Now()
 	}
@@ -73,4 +76,41 @@ func (m *defaultChatLogModel) Delete(ctx context.Context, id string) (int64, err
 
 	res, err := m.conn.DeleteOne(ctx, bson.M{"_id": oid})
 	return res, err
+}
+
+// 查询聊天记录
+func (m *defaultChatLogModel) ListBySendTime(ctx context.Context, conversationId string,  startSendTime, endSendTime, limit int64) ([]*ChatLog, error)  {
+
+	var data []*ChatLog
+	// 1. 构建原生 FindOptions
+	opt := options.Find() // 原生构建器
+	opt.SetSort(bson.M{"send_time": -1})
+	// 设置 limit
+	limitVal := DefaultChatLogLimit
+	if limit > 0 {
+		limitVal = limit
+	}
+	opt.SetLimit(limitVal)
+	// 2. 构建查询条件
+	filter := bson.M{"conversation_id": conversationId}
+	if endSendTime > 0 {
+		filter["send_time"] = bson.M{
+			"$gt":  startSendTime,
+			"$lte": endSendTime,
+		}
+	} else {
+		filter["send_time"] = bson.M{
+			"$lt": startSendTime,
+		}
+	}
+	err := m.conn.Find(ctx, &data, filter, opt)
+	dump.P(&data,filter)
+	switch err {
+	case nil:
+		return data, nil
+	case mongo.ErrNoDocuments:
+			return nil, ErrNotFound
+	default:
+		return nil, err
+	}
 }

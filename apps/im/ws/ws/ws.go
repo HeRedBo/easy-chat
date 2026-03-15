@@ -7,17 +7,17 @@ import (
 
 type (
 	Msg struct {
-		constants.MType `mapstructure:"m_type"`
-		Content         string `mapstructure:"content"`
+		constants.MType `mapstructure:"m_type" json:"m_type"`
+		Content         string `mapstructure:"content" json:"content,omitempty"`
 	}
 
 	Chat struct {
-		ConversationId     string `mapstructure:"conversation_id"`
-		constants.ChatType `mapstructure:"chat_type"`
-		SendId             string `mapstructure:"send_id"`
-		RecvId             string `mapstructure:"recv_id"`
-		SendTime           int64  `mapstructure:"send_time"`
-		Msg                `mapstructure:"msg"`
+		ConversationId     string `mapstructure:"conversation_id" json:"conversation_id,omitempty"`
+		constants.ChatType `mapstructure:"chat_type" json:"chat_type,omitempty"`
+		SendId             string `mapstructure:"send_id" json:"send_id,omitempty"`
+		RecvId             string `mapstructure:"recv_id" json:"recv_id,omitempty"`
+		SendTime           int64  `mapstructure:"send_time" json:"send_time,omitempty"`
+		Msg                `mapstructure:"msg" json:"msg,omitempty"`
 	}
 
 	Push struct {

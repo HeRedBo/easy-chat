@@ -1,0 +1,63 @@
+#:schema https://json.schemastore.org/any.json
+
+env_files = []
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = []
+  # macOS/Linux 版本
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
+  # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
+  # Windows 版本
+  # bin = "./tmp/main.exe" # windows 调整
+  # cmd = "go build -o ./tmp/main.exe ."
+  delay = 1000
+  stop_on_change = true   # 重启前杀死旧 exe 进程
+  kill_delay = "3000ms"   # 延长杀死进程时间
+  entrypoint = []
+  exclude_dir = ["assets", "tmp", "vendor", "testdata" ,"logs", "node_modules", ".git"]
+  exclude_regex = ["_test.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  full_bin = ""
+  ignore_dangerous_root_dir = false
+  # 需要监控的文件后缀（go-zero 项目核心是 .go 文件）
+  include_ext = ["go", "yaml", "yml", "proto" ,"tpl", "tmpl", "html"]
+  include_file = []
+  log = "build-errors.log"
+  poll = false
+  poll_interval = 0
+  post_cmd = []
+  pre_cmd = []
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = true  # 发送中断信号让进程优雅退出
+  stop_on_error = false
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  silent = false
+  time = false
+
+[misc]
+  clean_on_exit = true   # 退出时清理临时文件
+
+[proxy]
+  app_port = 0
+  app_start_timeout = 0
+  enabled = false
+  proxy_port = 0
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true

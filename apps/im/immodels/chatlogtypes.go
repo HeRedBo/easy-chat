@@ -4,11 +4,13 @@ import (
 	"time"
 
 	"github.com/HeRedBo/easy-chat/pkg/constants"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+var DefaultChatLogLimit int64 = 100
+
 type ChatLog struct {
-	ID primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ID bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 
 	ConversationId string             `bson:"conversation_id"`
 	SendId         string             `bson:"send_id"`

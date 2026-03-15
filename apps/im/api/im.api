@@ -1,11 +1,84 @@
 syntax = "v1"
 
-info(
-    title: "IM 消息服务"
-    desc: "im 消息APi服务"
-    author: "Redbo He"
-    email: "hhbjid@163.com"
-    version: "1.0"
+info (
+	title:   "IM 消息服务"
+	desc:    "im 消息APi服务"
+	author:  "Redbo He"
+	email:   "hhbjkd@163.com"
+	version: "1.0"
 )
 
-// --------------------------- im  api v1 -------------------------------
+// ------- domain.api --------------------
+type (
+	ChatLog {
+		Id             string `json:"id,omitempty"` //消息ID
+		ConversationId string `json:"conversation_id,omitempty"` // 会话ID
+		SendId         string `json:"send_id,omitempty"` // 发送者ID
+		RecvId         string `json:"recv_id,omitempty"` // 接收者ID
+		MsgType        int32  `json:"msg_type,omitempty"` // 消息类型（0-文本，2-图片）
+		MsgContent     string `json:"msg_content,omitempty"` // 消息内容
+		ChatType       int32  `json:"chat_type,omitempty"` // 聊天类型（1-单聊，2-群聊）
+		SendTime       int64  `json:"send_time,-"` // 发送时间戳
+	}
+	Conversation {
+		ConversationId string `json:"conversation_id,omitempty" description:"会话ID"`
+		ChatType       int32  `json:"chat_type,omitempty" description:"聊天类型"`
+		TargetId       string `json:"target_id,omitempty" description:"目标ID（对方用户/群ID）"`
+		IsShow         bool   `json:"is_show,omitempty" description:"是否显示会话"`
+		Seq            int64  `json:"seq,omitempty" description:"消息序列号"`
+		Read           int32  `json:"read,omitempty" description:"已读状态（0-未读，1-已读）"`
+		Total          int32  `json:"total,omitempty" description:"消息总数"`
+		Unread         int32  `json:"unread,omitempty" description:"未读消息数"`
+	}
+)
+
+// -------------- im api v1 --------------
+type (
+	ChatLogReq {
+		ConversationId string `form:"conversation_id"` // 会话ID
+		StartSendTime  int64  `form:"start_send_time,omitempty"` // 开始时间戳（毫秒），不传则查全部
+		EndSendTime    int64  `form:"end_send_time,omitempty"` // 结束时间戳（毫秒），不传则查全部
+		Count          int64  `form:"count,omitempty,default=20,example=20"` // 每页条数，默认20
+	}
+	ChatLogResp {
+		List []*ChatLog `json:"list"`
+	}
+	GetConversationsReq  {}
+	GetConversationsResp {
+		UserId           string                   `form:"user_id"` // 用户ID
+		ConversationList map[string]*Conversation `form:"conversation_list"` // 用户ID
+	}
+	PutConversationsReq {
+		ConversationList map[string]*Conversation `json:"conversation_list"` //会话列表
+	}
+	PutConversationsResp  {}
+	SetUpUserConversationReq {
+		SendId   string `json:"send_id,string"` // 发送者ID，必填
+		RecvId   string `json:"recv_id,string"` // 接收者ID
+		ChatType int32  `json:"chat_type,integer,options=1|2,example=true"` // 聊天类型
+	}
+	SetUpUserConversationResp  {}
+)
+
+@server (
+	prefix: v1/im
+	jwt:    JwtAuth
+)
+service im {
+	@doc "根据用户获取聊天记录"
+	@handler getChatLog
+	get /chatlog (ChatLogReq) returns (ChatLogResp)
+
+	@doc "建立会话"
+	@handler setUpUserConversation
+	post /setup/conversation (SetUpUserConversationReq) returns (SetUpUserConversationResp)
+
+	@doc "获取会话"
+	@handler getConversations
+	get /conversation (GetConversationsReq) returns (GetConversationsResp)
+
+	@doc "更新会话"
+	@handler putConversations
+	put /conversation (PutConversationsReq) returns (PutConversationsResp)
+}
+

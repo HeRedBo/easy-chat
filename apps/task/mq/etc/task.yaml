@@ -20,7 +20,6 @@ Mongo:
   Url: "mongodb://admin:admin123@127.0.0.1:27017/"
   Db: easy-chat
 
-  
 Redisx:
   Host: 127.0.0.1:6379
   Type: node
@@ -30,5 +29,6 @@ Cache:
   - Host: 127.0.0.1:6379
     Type: node
     Pass: "123456"
+    
 Ws:
   Host: 127.0.0.1:8093
