@@ -1,6 +1,12 @@
 Name: task.mq
 ListenOn: 0.0.0.0:8094
 
+SocialRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: social.rpc
+
 Mysql:
   DataSource: root:root@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
   MaxOpenConns: 10 # 最大打开连接数

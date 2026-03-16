@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/threading"
 )
 
 // AckType 应答信号类型
@@ -38,7 +39,9 @@ func (t AckType) Tostring() string {
 type Server struct {
 	sync.RWMutex
 
-	opt            *serverOption
+	opt *serverOption
+	*threading.TaskRunner
+
 	authentication Authentication
 	routes         map[string]HandlerFunc
 	addr           string
@@ -62,6 +65,7 @@ func NewServer(addr string, opts ...ServerOptions) *Server {
 		upgrader:   websocket.Upgrader{},
 		Logger:     logx.WithContext(context.Background()),
 		opt:        &opt,
+		TaskRunner: threading.NewTaskRunner(opt.concurrency),
 	}
 }
 

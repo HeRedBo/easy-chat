@@ -9,8 +9,9 @@ type MsgChatTransfer struct {
 	ConversationId string `json:"conversation_id"`
 	// 发送者
 	SendId string `json:"send_id"`
-	// 接收者
-	RecvId string `json:"recv_id"`
+	// 接收着
+	RecvId  string   `json:"recv_id"`
+	RecvIds []string `json:"recv_ids"`
 	// 消息类型
 	constants.MType `json:"msg_type,omitempty"`
 	// 消息内容

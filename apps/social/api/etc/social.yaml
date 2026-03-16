@@ -14,11 +14,12 @@ SocialRpc:
       - 127.0.0.1:2379
     Key: social.rpc
 
-#SocialRpc:
-#  Endpoints:
-#    - 127.0.0.1:8081
-#  Retries: 3           # 纯数字，无引号
-#  LoadBalance: random  # 字符串，可选值：random/roundrobin
+ImRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: im.rpc
+
 
 JwtAuth:
   AccessSecret: redbo.com

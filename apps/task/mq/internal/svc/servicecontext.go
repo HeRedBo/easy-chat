@@ -5,13 +5,17 @@ import (
 
 	"github.com/HeRedBo/easy-chat/apps/im/immodels"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/websocket"
+	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
 	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/config"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
 type ServiceContext struct {
 	config.Config
+	socialclient.Social
+
 	WsClient websocket.Client
 	*redis.Redis
 
@@ -25,6 +29,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Redis:             redis.MustNewRedis(c.Redisx),
 		ChatLogModel:      immodels.NewChatLogModel(c.Mongo.Url, c.Mongo.Db, "chat_log"),
 		ConversationModel: immodels.NewConversationModel(c.Mongo.Url, c.Mongo.Db, "conversation"),
+		Social:            socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc)),
 	}
 
 	token, err := svc.GetSystemToken()

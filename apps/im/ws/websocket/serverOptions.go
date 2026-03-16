@@ -12,6 +12,7 @@ type serverOption struct {
 	actTimeout time.Duration
 
 	maxConnectionIdle time.Duration
+	concurrency       int
 }
 
 func NewServerOption(opts ...ServerOptions) serverOption {
@@ -20,6 +21,7 @@ func NewServerOption(opts ...ServerOptions) serverOption {
 		Authentication: new(authentication),
 		actTimeout:     defaultAckTimeout,
 		patten:         "/ws",
+		concurrency:    defaultConcurrency,
 	}
 	for _, opt := range opts {
 		opt(&o)
@@ -50,5 +52,11 @@ func WithServerMaxConnectionIdle(maxConnectionIdle time.Duration) ServerOptions 
 		if maxConnectionIdle > 0 {
 			opt.maxConnectionIdle = maxConnectionIdle
 		}
+	}
+}
+
+func WithServerConcurrency(concurrency int) ServerOptions {
+	return func(opt *serverOption) {
+		opt.concurrency = concurrency
 	}
 }

@@ -4,6 +4,7 @@
 package svc
 
 import (
+	"github.com/HeRedBo/easy-chat/apps/im/rpc/imclient"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/config"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/userclient"
@@ -14,6 +15,7 @@ type ServiceContext struct {
 	Config config.Config
 	userclient.User
 	socialclient.Social
+	imclient.Im
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -21,5 +23,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config: c,
 		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc)),
 		Social: socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc)),
+		Im:     imclient.NewIm(zrpc.MustNewClient(c.Imrpc)),
 	}
 }
