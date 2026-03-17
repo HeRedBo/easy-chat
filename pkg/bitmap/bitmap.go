@@ -58,3 +58,24 @@ func hash(id string) int {
 	}
 	return hash & 0x7FFFFFFF
 }
+
+// Count 统计所有为1的位的数量（在线人数/打卡人数）
+func (b *Bitmap) Count() uint64 {
+	var count uint64
+	// 遍历每个字节，统计其中1的个数
+	for _, b := range b.bits {
+		// 快速统计一个字节中1的个数（Go内置技巧）
+		count += uint64(popCount(b))
+	}
+	return count
+}
+
+// popCount 统计单个字节中1的位数（辅助函数）
+func popCount(b byte) int {
+	count := 0
+	for b != 0 {
+		count++
+		b &= b - 1 // 清除最低位的1
+	}
+	return count
+}
