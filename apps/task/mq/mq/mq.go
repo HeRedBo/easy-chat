@@ -19,3 +19,15 @@ type MsgChatTransfer struct {
 	// 发送时间
 	SendTime int64 `json:"send_time"`
 }
+
+type MsgMarkRead struct {
+	ChatType constants.ChatType `json:"chat_type,omitempty"`
+	// 会话ID
+	ConversationId string `json:"conversation_id,omitempty"`
+	// 发送着
+	SendId string `json:"send_id,omitempty"`
+	// 接收着
+	RecvId string `json:"recv_id,omitempty"`
+	// 已读消息集合
+	MsgIds []string `json:"msg_ids,omitempty"`
+}

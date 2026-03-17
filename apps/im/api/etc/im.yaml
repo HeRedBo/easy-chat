@@ -8,6 +8,19 @@ Imrpc:
       - 127.0.0.1:2379
     key: im.rpc
 
+SocialRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: social.rpc
+
+UserRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: user.rpc
+
+
 JwtAuth:
   AccessSecret: redbo.com
   AccessExpire: 8640000

@@ -15,6 +15,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				// 根据消息ID获取已读未读记录
+				Method:  http.MethodGet,
+				Path:    "/chatlog/records",
+				Handler: getChatLogReadRecordsHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/im"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
 				// 根据用户获取聊天记录
 				Method:  http.MethodGet,
 				Path:    "/chatlog",

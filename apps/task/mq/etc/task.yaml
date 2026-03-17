@@ -22,6 +22,15 @@ MsgChatTransfer:
   Offset: first # "first" | "last"
   Consumers: 1
 
+MsgReadTransfer:
+  Name: MsgReadTrans
+  Brokers:
+    - host.docker.internal:9092
+  Group: kafka
+  Topic: MsgReadTransfer
+  Offset: first
+  Consumers: 1
+
 Mongo:
   Url: "mongodb://admin:admin123@127.0.0.1:27017/"
   Db: easy-chat

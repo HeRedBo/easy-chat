@@ -16,7 +16,7 @@ func Push(svc *svc.ServiceContext) websocket.HandlerFunc {
 			return
 		}
 
-		srv.Infof("push msg %v", data)
+		// 发送的目标
 		switch data.ChatType {
 		case constants.SingleChatType:
 			err := single(srv, &data, data.RecvId)

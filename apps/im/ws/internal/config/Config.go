@@ -20,4 +20,9 @@ type Config struct {
 		Topic string
 		Addrs []string
 	}
+
+	MsgMarkRead struct {
+		Topic string
+		Addrs []string
+	}
 }

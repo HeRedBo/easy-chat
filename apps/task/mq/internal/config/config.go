@@ -12,10 +12,11 @@ type Config struct {
 	service.ServiceConf
 
 	SocialRpc zrpc.RpcClientConf
-	
+
 	ListenOn string
 
 	MsgChatTransfer kq.KqConf
+	MsgReadTransfer kq.KqConf
 
 	Redisx redis.RedisConf
 

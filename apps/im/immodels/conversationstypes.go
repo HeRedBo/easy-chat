@@ -8,7 +8,7 @@ import (
 
 type Conversations struct {
 	ID bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	
+
 	// TODO: Fill your own fields
 	UserId           string                   `bson:"user_id" json:"user_id"`
 	ConversationList map[string]*Conversation `bson:"conversation_list,omitempty" json:"conversation_list,omitempty"`

@@ -19,5 +19,6 @@ func (l *Listen) Services() []service.Service {
 	return []service.Service{
 		// todo: 此处可以加载多个消费者
 		kq.MustNewQueue(l.svc.Config.MsgChatTransfer, msgTransfer.NewMsgChatTransfer(l.svc)),
+		kq.MustNewQueue(l.svc.Config.MsgReadTransfer, msgTransfer.NewMsgReadTransfer(l.svc)),
 	}
 }

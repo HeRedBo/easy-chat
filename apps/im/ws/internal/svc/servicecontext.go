@@ -10,13 +10,15 @@ type ServiceContext struct {
 	Config config.Config
 	immodels.ChatLogModel
 
-	MsgChatTransfer mqclient.MsgChatTransferClient
+	MsgChatTransfer     mqclient.MsgChatTransferClient
+	MsgReadChatTransfer mqclient.MsgReadChatTransferClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
-		Config:          c,
-		ChatLogModel:    immodels.NewChatLogModel(c.Mongo.Url, c.Mongo.Db, "chat_log"),
-		MsgChatTransfer: mqclient.NewMsgChatTransferClient(c.MsgChatTransfer.Addrs, c.MsgChatTransfer.Topic),
+		Config:              c,
+		ChatLogModel:        immodels.NewChatLogModel(c.Mongo.Url, c.Mongo.Db, "chat_log"),
+		MsgChatTransfer:     mqclient.NewMsgChatTransferClient(c.MsgChatTransfer.Addrs, c.MsgChatTransfer.Topic),
+		MsgReadChatTransfer: mqclient.NewMsgReadChatTransferClient(c.MsgMarkRead.Addrs, c.MsgMarkRead.Topic),
 	}
 }

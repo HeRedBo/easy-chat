@@ -32,6 +32,26 @@ type (
 	}
 )
 
+type (
+	GetChatLogReadRecordsReq {
+		MsgId string `json:"msg_id,omitempty"` // 消息ID
+	}
+	GetChatLogReadRecordsResp {
+		Reads   []string `json:"reads"`
+		UnReads []string `json:"un_reads"`
+	}
+)
+
+@server (
+	prefix: v1/im
+	jwt:    JwtAuth
+)
+service im {
+	@doc "根据消息ID获取已读未读记录"
+	@handler getChatLogReadRecords
+	get /chatlog/records (GetChatLogReadRecordsReq) returns (GetChatLogReadRecordsResp)
+}
+
 // -------------- im api v1 --------------
 type (
 	ChatLogReq {

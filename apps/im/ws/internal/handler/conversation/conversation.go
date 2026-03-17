@@ -72,3 +72,32 @@ func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 
 	}
 }
+
+func MarkRead(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
+	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
+		// 标记未读处理
+		var data ws.MarkRead
+		if err := mapstructure.Decode(msg.Data, &data); err != nil {
+			err := srv.Send(websocket.NewErrMessage(err), conn)
+			if err != nil {
+				return
+			}
+			return
+		}
+
+		err := srvCtx.MsgReadChatTransfer.Push(&mq.MsgMarkRead{
+			ChatType:       data.ChatType,
+			ConversationId: data.ConversationId,
+			SendId:         conn.Uid,
+			RecvId:         data.RecvId,
+			MsgIds:         data.MsgIds,
+		})
+
+		if err != nil {
+			err := srv.Send(websocket.NewErrMessage(err), conn)
+			if err != nil {
+				return
+			}
+		}
+	}
+}

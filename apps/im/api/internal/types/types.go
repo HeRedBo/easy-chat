@@ -36,6 +36,15 @@ type Conversation struct {
 	Unread         int32  `json:"unread,omitempty" description:"未读消息数"`
 }
 
+type GetChatLogReadRecordsReq struct {
+	MsgId string `json:"msg_id,omitempty"` // 消息ID
+}
+
+type GetChatLogReadRecordsResp struct {
+	Reads   []string `json:"reads"`
+	UnReads []string `json:"un_reads"`
+}
+
 type GetConversationsReq struct {
 }
 
