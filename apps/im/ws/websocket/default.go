@@ -7,4 +7,5 @@ import (
 
 const (
 	defaultMaxConnectionIdle = time.Duration(math.MaxInt64)
+	defaultAckTimeout        = 30 * time.Second
 )
