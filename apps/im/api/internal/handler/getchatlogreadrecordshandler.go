@@ -12,8 +12,8 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-// 根据消息ID获取已读未读记录
-func getChatLogReadRecordsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+// 验证消息已读记录查询
+func GetChatLogReadRecordsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GetChatLogReadRecordsReq
 		if err := httpx.Parse(r, &req); err != nil {

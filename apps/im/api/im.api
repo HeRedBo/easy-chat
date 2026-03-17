@@ -78,6 +78,13 @@ type (
 		ChatType int32  `json:"chat_type,integer,options=1|2,example=true"` // 聊天类型
 	}
 	SetUpUserConversationResp  {}
+	GetChatLogReadRecordsReq {
+		MsgId string `json:"msg_id"`
+	}
+	GetChatLogReadRecordsResp {
+		Reads   []string `json:"reads"`
+		UnReads []string `json:"un_reads"`
+	}
 )
 
 @server (
@@ -88,6 +95,10 @@ service im {
 	@doc "根据用户获取聊天记录"
 	@handler getChatLog
 	get /chatlog (ChatLogReq) returns (ChatLogResp)
+
+	@doc "验证消息已读记录查询"
+	@handler GetChatLogReadRecords
+	get /chatlog/readRecords (GetChatLogReadRecordsReq) returns (GetChatLogReadRecordsResp)
 
 	@doc "建立会话"
 	@handler setUpUserConversation

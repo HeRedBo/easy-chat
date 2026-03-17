@@ -13,7 +13,6 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/user"
 	"github.com/HeRedBo/easy-chat/pkg/bitmap"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -23,7 +22,7 @@ type GetChatLogReadRecordsLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// 根据消息ID获取已读未读记录
+// 验证消息已读记录查询
 func NewGetChatLogReadRecordsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetChatLogReadRecordsLogic {
 	return &GetChatLogReadRecordsLogic{
 		Logger: logx.WithContext(ctx),
@@ -34,9 +33,10 @@ func NewGetChatLogReadRecordsLogic(ctx context.Context, svcCtx *svc.ServiceConte
 
 func (l *GetChatLogReadRecordsLogic) GetChatLogReadRecords(req *types.GetChatLogReadRecordsReq) (resp *types.GetChatLogReadRecordsResp, err error) {
 	// todo: add your logic here and delete this line
-	chatlogs, err := l.svcCtx.GetChatLog(l.ctx, &im.GetChatLogReq{
+	chatlogs, err := l.svcCtx.Im.GetChatLog(l.ctx, &im.GetChatLogReq{
 		MsgId: req.MsgId,
 	})
+
 	if err != nil || len(chatlogs.List) == 0 {
 		return nil, err
 	}

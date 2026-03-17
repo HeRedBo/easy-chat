@@ -2,7 +2,7 @@ Name: im
 Host: 0.0.0.0
 Port: 8899
 
-Imrpc:
+ImRpc:
   etcd:
     hosts:
       - 127.0.0.1:2379
@@ -19,7 +19,6 @@ UserRpc:
     Hosts:
       - 127.0.0.1:2379
     Key: user.rpc
-
 
 JwtAuth:
   AccessSecret: redbo.com

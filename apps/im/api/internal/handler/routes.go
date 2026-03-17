@@ -34,6 +34,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: getChatLogHandler(serverCtx),
 			},
 			{
+				// 验证消息已读记录查询
+				Method:  http.MethodGet,
+				Path:    "/chatlog/readRecords",
+				Handler: GetChatLogReadRecordsHandler(serverCtx),
+			},
+			{
 				// 获取会话
 				Method:  http.MethodGet,
 				Path:    "/conversation",
