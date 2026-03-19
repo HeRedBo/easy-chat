@@ -1,0 +1,62 @@
+#:schema https://json.schemastore.org/any.json
+
+env_files = []
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = []
+  bin = "./tmp/main"
+  # 核心修改：适配 go run . 启动方式 需要指定配置文件 go run . -f etc/user.yaml
+  cmd = "lsof -ti:8090 | xargs kill -9 >/dev/null 2>&1; go run ."
+  # Windows 版本
+  # cmd = "for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :8090') do taskkill /f /pid %a >nul 2>&1; go run ."
+  delay = 1000
+  entrypoint = ["./tmp/main"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "logs", "node_modules", ".git"]
+  exclude_file = []
+  exclude_regex = ["_test.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  full_bin = ""
+  ignore_dangerous_root_dir = false
+  include_dir = []
+  include_ext = ["go", "yaml", "yml", "proto" ,"tpl", "tmpl", "html"]
+  include_file = []
+  kill_delay = "0s"
+  log = "build-errors.log"
+  poll = false
+  poll_interval = 0
+  post_cmd = []
+  pre_cmd = []
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = false
+  stop_on_error = false
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  silent = false
+  time = false
+
+[misc]
+    # 是否显示构建日志
+  clean_on_exit = false
+
+[proxy]
+  app_port = 0
+  app_start_timeout = 0
+  enabled = false
+  proxy_port = 0
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true
