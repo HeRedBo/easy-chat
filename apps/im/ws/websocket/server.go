@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gookit/goutil/dump"
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -18,8 +19,8 @@ type Server struct {
 	routes         map[string]HandlerFunc
 	addr           string
 
-	connToUser map[*websocket.Conn]string
-	userToConn map[string]*websocket.Conn
+	connToUser map[*Conn]string
+	userToConn map[string]*Conn
 
 	upgrader websocket.Upgrader
 	logx.Logger
@@ -30,8 +31,8 @@ func NewServer(addr string, opts ...ServerOptions) *Server {
 	return &Server{
 		addr:           addr,
 		authentication: opt.Authentication,
-		connToUser:     make(map[*websocket.Conn]string),
-		userToConn:     make(map[string]*websocket.Conn),
+		connToUser:     make(map[*Conn]string),
+		userToConn:     make(map[string]*Conn),
 		routes:         make(map[string]HandlerFunc),
 		upgrader:       websocket.Upgrader{},
 		Logger:         logx.WithContext(context.Background()),
@@ -51,10 +52,14 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 		s.Infof("Websocket server authentication failed")
 		return
 	}
-	// 1. 将HTTP连接升级为WebSocket连接
-	conn, err := s.upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		s.Error("upgrader.Upgrade err: %v", err)
+
+	//conn, err := s.upgrader.Upgrade(w, r, nil)
+	//if err != nil {
+	//	s.Error("upgrader.Upgrade err: %v", err)
+	//}
+	conn := NewConn(s, w, r)
+	if conn == nil {
+		return
 	}
 
 	// 添加连接记录, 会有并发问题
@@ -63,12 +68,13 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 	go s.handleConn(conn)
 }
 
-func (s *Server) addConn(conn *websocket.Conn, req *http.Request) {
-
+func (s *Server) addConn(conn *Conn, req *http.Request) {
+	// 此处是map的写操作，在操作上会存在并发的可能问题
 	uid := s.authentication.UserId(req)
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 
+	dump.P("addConn", uid)
 	// 验证用户是否之前登入过
 	if c := s.userToConn[uid]; c != nil {
 		// 关闭之前的连接
@@ -81,7 +87,7 @@ func (s *Server) addConn(conn *websocket.Conn, req *http.Request) {
 	s.userToConn[uid] = conn
 }
 
-func (s *Server) handleConn(conn *websocket.Conn) {
+func (s *Server) handleConn(conn *Conn) {
 
 	// 5. 循环读取客户端消息
 	for {
@@ -100,28 +106,38 @@ func (s *Server) handleConn(conn *websocket.Conn) {
 			return
 		}
 		// 依据消息进行处理
-		if handler, ok := s.routes[message.Method]; ok {
-			handler(s, conn, &message)
-		} else {
-			err := conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method)))
+		switch message.FrameType {
+		case FramePing:
+			// ping 回复
+			err := s.Send(&Message{FrameType: FramePing}, conn)
 			if err != nil {
-				s.Errorf(" conn.WriteMessage err %v, msg %v", err, fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method))
 				return
 			}
+		case FrameData:
+			if handler, ok := s.routes[message.Method]; ok {
+				handler(s, conn, &message)
+			} else {
+				//err := conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method)))
+				err := s.Send(&Message{FrameType: FrameData,
+					Data: fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method),
+				}, conn)
+				if err != nil {
+					s.Errorf(" conn.WriteMessage err %v, msg %v", err, fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method))
+					return
+				}
+			}
 		}
-
-		// 6. 回复客户端（echo功能）
 	}
 }
 
-func (s *Server) GetConn(uid string) *websocket.Conn {
+func (s *Server) GetConn(uid string) *Conn {
 	s.RWMutex.RLock()
 	defer s.RWMutex.RUnlock()
 
 	return s.userToConn[uid]
 }
 
-func (s *Server) GetCons(uids ...string) []*websocket.Conn {
+func (s *Server) GetCons(uids ...string) []*Conn {
 	if len(uids) == 0 {
 		return nil
 	}
@@ -129,14 +145,14 @@ func (s *Server) GetCons(uids ...string) []*websocket.Conn {
 	s.RWMutex.RLock()
 	defer s.RWMutex.RUnlock()
 
-	res := make([]*websocket.Conn, 0, len(uids))
+	res := make([]*Conn, 0, len(uids))
 	for _, uid := range uids {
 		res = append(res, s.userToConn[uid])
 	}
 	return res
 }
 
-func (s *Server) GetUsers(cones ...*websocket.Conn) []string {
+func (s *Server) GetUsers(cones ...*Conn) []string {
 
 	s.RWMutex.RLock()
 	defer s.RWMutex.RUnlock()
@@ -158,15 +174,16 @@ func (s *Server) GetUsers(cones ...*websocket.Conn) []string {
 	return res
 }
 
-func (s *Server) Close(conn *websocket.Conn) {
+func (s *Server) Close(conn *Conn) {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 	uid := s.connToUser[conn]
 	if uid == "" {
-		// 已经被关闭
+		// 已经被关闭了连接
 		return
 	}
 
+	fmt.Printf("关闭与%s的链接\n", uid)
 	delete(s.connToUser, conn)
 	delete(s.userToConn, uid)
 	err := conn.Close()
@@ -185,7 +202,7 @@ func (s *Server) SendByUserId(msg interface{}, sendIds ...string) error {
 	return s.Send(msg, s.GetCons(sendIds...)...)
 }
 
-func (s *Server) Send(msg interface{}, cones ...*websocket.Conn) error {
+func (s *Server) Send(msg interface{}, cones ...*Conn) error {
 	if len(cones) == 0 {
 		return nil
 	}

@@ -1,15 +1,14 @@
-package user
+package conversation
 
 import (
 	"github.com/HeRedBo/easy-chat/apps/im/ws/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/websocket"
 )
 
-func OnLine(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
+func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
-		//uids := srv.GetUsers()
-		//u := srv.GetUsers(conn)
-		err := srv.Send(websocket.NewMessage(srv, conn, msg.Data), conn)
+
+		err := srv.SendByUserId(websocket.NewMessage(srv, conn, msg.Data), msg.UserId)
 		srv.Info("err ", err)
 	}
 }
