@@ -31,7 +31,7 @@ func main() {
 
 	handler.RegisterHandlers(srv, ctx)
 
-	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
+	fmt.Printf("Starting websocket server at %s...\n", c.ListenOn)
 	// 3. 监听退出信号（SIGINT/SIGTERM），实现优雅关闭
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)

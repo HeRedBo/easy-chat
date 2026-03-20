@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gookit/goutil/dump"
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -43,13 +42,18 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			s.Errorf("Websocket server panic: %v", err)
+			s.Errorf("server handler ws recover err : %v", err)
 		}
 	}()
 
 	// 添加鉴权
 	if !s.authentication.Auth(w, r) {
 		s.Infof("Websocket server authentication failed")
+		_, err := w.Write([]byte("authentication failed"))
+		if err != nil {
+			s.Errorf("server handler ws write err : %v", err)
+			return
+		}
 		return
 	}
 
@@ -74,7 +78,6 @@ func (s *Server) addConn(conn *Conn, req *http.Request) {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 
-	dump.P("addConn", uid)
 	// 验证用户是否之前登入过
 	if c := s.userToConn[uid]; c != nil {
 		// 关闭之前的连接
@@ -96,6 +99,7 @@ func (s *Server) handleConn(conn *Conn) {
 		if err != nil {
 			s.Error("websocket.读取消息失败 err: %v, userId %s", err, "")
 			// 关闭并删除连接
+			s.Close(conn)
 			return
 		}
 		// 请求信息
@@ -118,8 +122,9 @@ func (s *Server) handleConn(conn *Conn) {
 				handler(s, conn, &message)
 			} else {
 				//err := conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method)))
-				err := s.Send(&Message{FrameType: FrameData,
-					Data: fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method),
+				err := s.Send(&Message{
+					FrameType: FrameData,
+					Data:      fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method),
 				}, conn)
 				if err != nil {
 					s.Errorf(" conn.WriteMessage err %v, msg %v", err, fmt.Sprintf("不存在请求方法 %v 请仔细检查", message.Method))
