@@ -6,7 +6,6 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/im/immodels"
 	"github.com/HeRedBo/easy-chat/apps/im/rpc/im"
 	"github.com/HeRedBo/easy-chat/apps/im/rpc/internal/svc"
-	"github.com/HeRedBo/easy-chat/apps/user/models"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
 	"github.com/HeRedBo/easy-chat/pkg/xerr"
 	"github.com/gookit/goutil/errorx"
@@ -36,7 +35,7 @@ func (l *CreateGroupConversationLogic) CreateGroupConversation(in *im.CreateGrou
 		return res, nil
 	}
 
-	if err != models.ErrNotFound {
+	if err != immodels.ErrNotFound {
 		return nil, errorx.Wrapf(xerr.NewDBErr(), "find conversion err %v,req %v", err, in)
 	}
 

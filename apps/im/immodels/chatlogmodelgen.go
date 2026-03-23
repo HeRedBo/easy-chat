@@ -93,18 +93,26 @@ func (m *defaultChatLogModel) ListBySendTime(ctx context.Context, conversationId
 	opt.SetLimit(limitVal)
 	// 2. 构建查询条件
 	filter := bson.M{"conversation_id": conversationId}
-	if endSendTime > 0 {
+	// 根据不同的时间参数组合构建条件
+	if startSendTime > 0 && endSendTime > 0 {
+		// 同时提供开始和结束时间：查询时间范围内的记录
 		filter["send_time"] = bson.M{
 			"$gt":  startSendTime,
 			"$lte": endSendTime,
 		}
-	} else {
+	} else if startSendTime > 0 {
+		// 只提供开始时间：查询开始时间之后的记录（使用 $gt）
 		filter["send_time"] = bson.M{
-			"$lt": startSendTime,
+			"$gt": startSendTime,
+		}
+	} else if endSendTime > 0 {
+		// 只提供结束时间：查询结束时间之前的记录
+		filter["send_time"] = bson.M{
+			"$lte": endSendTime,
 		}
 	}
+	dump.P(filter)
 	err := m.conn.Find(ctx, &data, filter, opt)
-	dump.P(&data,filter)
 	switch err {
 	case nil:
 		return data, nil
