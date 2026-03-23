@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"net/url"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,6 +18,7 @@ type client struct {
 	*websocket.Conn
 	host string
 	opt  dialOption
+	mu   sync.Mutex // 添加互斥锁
 }
 
 func NewClient(host string, opts ...DialOptions) Client {
@@ -44,6 +46,8 @@ func (c *client) dial() (*websocket.Conn, error) {
 }
 
 func (c *client) Send(v any) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err

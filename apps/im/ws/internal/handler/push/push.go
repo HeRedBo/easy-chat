@@ -16,13 +16,6 @@ func Push(svc *svc.ServiceContext) websocket.HandlerFunc {
 			return
 		}
 
-		// 发送的目标
-		rconn := srv.GetConn(data.RecvId)
-		if rconn == nil {
-			// todo: 目标离线
-			return
-		}
-
 		srv.Infof("push msg %v", data)
 		switch data.ChatType {
 		case constants.SingleChatType:
@@ -40,7 +33,7 @@ func Push(svc *svc.ServiceContext) websocket.HandlerFunc {
 }
 
 func single(srv *websocket.Server, data *ws.Push, recvId string) error {
-	rconn := srv.GetConn(data.RecvId)
+	rconn := srv.GetConn(recvId)
 	if rconn == nil {
 		// todo: 目标离线
 		return nil
