@@ -25,7 +25,7 @@ MsgChatTransfer:
 MsgReadTransfer:
   Name: MsgReadTrans
   Brokers:
-    - host.docker.internal:9092
+    - 127.0.0.1:9092
   Group: kafka
   Topic: MsgReadTransfer
   Offset: first

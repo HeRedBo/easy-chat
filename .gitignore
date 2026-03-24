@@ -37,3 +37,4 @@ go.work.sum
 apps/im/ws/tmp/
 apps/im/api/tmp
 apps/im/rpc/tmp
+apps/task/mq/tmp/
