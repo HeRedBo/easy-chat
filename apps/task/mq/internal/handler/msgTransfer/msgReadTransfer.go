@@ -4,23 +4,51 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"sync"
+	"time"
 
 	"github.com/HeRedBo/easy-chat/apps/im/ws/ws"
 	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/task/mq/mq"
 	"github.com/HeRedBo/easy-chat/pkg/bitmap"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
+	"github.com/zeromicro/go-queue/kq"
+)
+
+var (
+	GroupMsgReadRecordDelayTime  = time.Second
+	GroupMsgReadRecordDelayCount = 10
+)
+
+const (
+	GroupMsgReadHandlerAtTransfer = iota
+	GroupMsgReadHandlerDelayTransfer
 )
 
 type MsgReadTransfer struct {
 	*BaseMsgTransfer
+
+	mu        sync.Mutex
+	push      chan *ws.Push
+	groupMses map[string]*groupMsgRead
 }
 
-func NewMsgReadTransfer(svc *svc.ServiceContext) *MsgReadTransfer {
-	return &MsgReadTransfer{
+func NewMsgReadTransfer(svc *svc.ServiceContext) kq.ConsumeHandler {
+	m := &MsgReadTransfer{
 		BaseMsgTransfer: NewBaseMsgTransfer(svc),
 	}
+
+	if svc.Config.MsgReadHandler.GroupMsgReadHandler != GroupMsgReadHandlerAtTransfer {
+		if svc.Config.MsgReadHandler.GroupMsgReadRecordDelayCount > 0 {
+			GroupMsgReadRecordDelayCount = svc.Config.MsgReadHandler.GroupMsgReadRecordDelayCount
+		}
+		if svc.Config.MsgReadHandler.GroupMsgReadRecordDelayTime > 0 {
+			GroupMsgReadRecordDelayTime = time.Duration(svc.Config.MsgReadHandler.GroupMsgReadRecordDelayTime) * time.Second
+		}
+	}
+	// 开启协程处理已读消息发送
+	go m.transfer()
+	return m
 }
 
 func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error {
@@ -39,17 +67,78 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 		return err
 	}
 
-	fmt.Println("MsgReadTransfer ", ReadRecords)
-
-	// 将已读消息发送给用户
-	return m.Transfer(ctx, &ws.Push{
-		ConversationId: data.ConversationId,
+	push := &ws.Push{
 		ChatType:       data.ChatType,
+		ConversationId: data.ConversationId,
 		SendId:         data.SendId,
 		RecvId:         data.RecvId,
 		ContentType:    constants.ContentMakeRead,
 		ReadRecords:    ReadRecords,
-	})
+	}
+
+	switch data.ChatType {
+	case constants.SingleChatType:
+		// 直接推送
+		m.push <- push
+
+	case constants.GroupChatType:
+		if m.svcCtx.Config.MsgReadHandler.GroupMsgReadHandler == GroupMsgReadHandlerAtTransfer {
+			m.push <- push
+		}
+		m.mu.Lock()
+		defer m.mu.Unlock()
+
+		push.SendId = ""
+
+		if _, ok := m.groupMses[push.ConversationId]; !ok {
+			m.Infof("merge push %v", push.ConversationId)
+			// 合并请求
+			m.groupMses[push.ConversationId].mergePush(push)
+		} else {
+			m.Infof("neGroupMsgRead %v", push.ConversationId)
+			m.groupMses[push.ConversationId] = newGroupMsgRead(push, m.push)
+		}
+	}
+
+	return nil
+
+	//fmt.Println("MsgReadTransfer ", ReadRecords)
+	//
+	//// 将已读消息发送给用户
+	//return m.Transfer(ctx, &ws.Push{
+	//	ConversationId: data.ConversationId,
+	//	ChatType:       data.ChatType,
+	//	SendId:         data.SendId,
+	//	RecvId:         data.RecvId,
+	//	ContentType:    constants.ContentMakeRead,
+	//	ReadRecords:    ReadRecords,
+	//})
+}
+
+func (m *MsgReadTransfer) transfer() {
+	for push := range m.push {
+
+		if push.RecvId != "" || len(push.RecvIds) > 0 {
+			if err := m.Transfer(context.Background(), push); err != nil {
+				m.Errorf("msgTransfer push %v err %v", push, err)
+			}
+		}
+
+		if push.ChatType == constants.SingleChatType {
+			continue
+		}
+
+		if m.svcCtx.Config.MsgReadHandler.GroupMsgReadHandler == GroupMsgReadHandlerAtTransfer {
+			continue
+		}
+		// 清空数据
+		m.mu.Lock()
+		if _, ok := m.groupMses[push.ConversationId]; ok && m.groupMses[push.ConversationId].isIdle() {
+			m.groupMses[push.ConversationId].clear()
+			delete(m.groupMses, push.ConversationId)
+		}
+		m.mu.Unlock()
+	}
 }
 
 func (m *MsgReadTransfer) UpdateChatLogRead(ctx context.Context, data *mq.MsgMarkRead) (map[string]string, error) {

@@ -31,6 +31,11 @@ MsgReadTransfer:
   Offset: first
   Consumers: 1
 
+MsgReadHandler:
+  GroupMsgReadHandler: 1
+  GroupMsgReadRecordDelayTime: 2
+  GroupMsgReadRecordDelayCount: 2
+
 Mongo:
   Url: "mongodb://admin:admin123@127.0.0.1:27017/"
   Db: easy-chat
