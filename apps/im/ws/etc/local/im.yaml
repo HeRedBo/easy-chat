@@ -13,7 +13,7 @@ MsgChatTransfer:
 MsgMarkRead:
   Addrs:
     - 127.0.0.1:9092
-  Topic: msgReadChatTransfer
+  Topic: msgReadTransfer
 
 
 JwtAuth:

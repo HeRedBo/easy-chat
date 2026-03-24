@@ -23,11 +23,11 @@ MsgChatTransfer:
   Consumers: 1
 
 MsgReadTransfer:
-  Name: MsgReadTrans
+  Name: MsgReadTransfer
   Brokers:
     - 127.0.0.1:9092
   Group: kafka
-  Topic: MsgReadTransfer
+  Topic: msgReadTransfer
   Offset: first
   Consumers: 1
 

@@ -16,10 +16,7 @@ func Chat(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
 		var data ws.Chat
 		if err := mapstructure.Decode(msg.Data, &data); err != nil {
-			err := srv.Send(websocket.NewErrMessage(err), conn)
-			if err != nil {
-				return
-			}
+			_ = srv.Send(websocket.NewErrMessage(err), conn)
 			return
 		}
 
@@ -72,7 +69,6 @@ func MarkRead(srvCtx *svc.ServiceContext) websocket.HandlerFunc {
 			}
 			return
 		}
-
 		err := srvCtx.MsgReadChatTransfer.Push(&mq.MsgMarkRead{
 			ChatType:       data.ChatType,
 			ConversationId: data.ConversationId,

@@ -128,12 +128,11 @@ func (m *defaultChatLogModel) ListBySendTime(ctx context.Context, conversationId
 func (m *defaultChatLogModel) ListByMsgIds(ctx context.Context, msgIds []string) ([]*ChatLog, error) {
 	var data []*ChatLog
 
-	ids := make([]primitive.ObjectID, 0, len(msgIds))
+	ids := make([]bson.ObjectID, 0, len(msgIds))
 	for _, msgId := range msgIds {
-		oid, _ := primitive.ObjectIDFromHex(msgId)
+		oid, _ := bson.ObjectIDFromHex(msgId)
 		ids = append(ids, oid)
 	}
-
 	filter := bson.M{"_id": bson.M{"$in": ids}}
 	err := m.conn.Find(ctx, &data, filter, nil)
 	switch err {
@@ -147,8 +146,11 @@ func (m *defaultChatLogModel) ListByMsgIds(ctx context.Context, msgIds []string)
 }
 
 func (m *defaultChatLogModel) UpdateMakeRead(ctx context.Context, id bson.ObjectID, readRecords []byte) error {
-	_, err := m.conn.UpdateMany(ctx, bson.M{"_id": id}, bson.M{
-		"readRecords": readRecords,
+	_, err := m.conn.UpdateOne(ctx, bson.M{"_id": id}, bson.M{
+		"$set": bson.M{
+			"read_records": readRecords,
+			"update_at":   time.Now(),
+		},
 	})
 	return err
 }

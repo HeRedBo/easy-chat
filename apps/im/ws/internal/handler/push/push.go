@@ -5,17 +5,18 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/im/ws/websocket"
 	"github.com/HeRedBo/easy-chat/apps/im/ws/ws"
 	"github.com/HeRedBo/easy-chat/pkg/constants"
-	"github.com/mitchellh/mapstructure"
+	"github.com/HeRedBo/easy-chat/pkg/mapstructure"
 )
 
 func Push(svc *svc.ServiceContext) websocket.HandlerFunc {
 	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
 		var data ws.Push
+
+		// 使用公共包的 Decode 函数
 		if err := mapstructure.Decode(msg.Data, &data); err != nil {
 			_ = srv.Send(websocket.NewErrMessage(err))
 			return
 		}
-
 		// 发送的目标
 		switch data.ChatType {
 		case constants.SingleChatType:
@@ -44,8 +45,10 @@ func single(srv *websocket.Server, data *ws.Push, recvId string) error {
 		ChatType:       data.ChatType,
 		SendTime:       data.SendTime,
 		Msg: ws.Msg{
-			MType:   data.MType,
-			Content: data.Content,
+			MType:       data.MType,
+			Content:     data.Content,
+			MsgId:       data.MsgId,
+			ReadRecords: data.ReadRecords,
 		},
 	}), rconn)
 }
