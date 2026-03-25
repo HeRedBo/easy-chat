@@ -36,6 +36,8 @@ type MsgReadTransfer struct {
 func NewMsgReadTransfer(svc *svc.ServiceContext) kq.ConsumeHandler {
 	m := &MsgReadTransfer{
 		BaseMsgTransfer: NewBaseMsgTransfer(svc),
+		groupMses:       make(map[string]*groupMsgRead, 1),
+		push:            make(chan *ws.Push, 1),
 	}
 
 	if svc.Config.MsgReadHandler.GroupMsgReadHandler != GroupMsgReadHandlerAtTransfer {
@@ -58,7 +60,7 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 	var data mq.MsgMarkRead
 
 	if err := json.Unmarshal([]byte(value), &data); err != nil {
-		return nil
+		return err
 	}
 
 	// 更新消息聊天记录中的已读状态
@@ -82,15 +84,15 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 		m.push <- push
 
 	case constants.GroupChatType:
+		// 判断是否开启合并消息的处理
 		if m.svcCtx.Config.MsgReadHandler.GroupMsgReadHandler == GroupMsgReadHandlerAtTransfer {
 			m.push <- push
 		}
 		m.mu.Lock()
 		defer m.mu.Unlock()
-
 		push.SendId = ""
 
-		if _, ok := m.groupMses[push.ConversationId]; !ok {
+		if _, ok := m.groupMses[push.ConversationId]; ok {
 			m.Infof("merge push %v", push.ConversationId)
 			// 合并请求
 			m.groupMses[push.ConversationId].mergePush(push)

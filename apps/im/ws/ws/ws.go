@@ -9,8 +9,8 @@ type (
 	Msg struct {
 		constants.MType `mapstructure:"m_type" json:"m_type"`
 		Content         string            `mapstructure:"content" json:"content,omitempty"`
-		MsgId           string            `mapstructure:"msg_id"`
-		ReadRecords     map[string]string `mapstructure:"read_records"` // 已读记录
+		MsgId           string            `mapstructure:"msg_id" json:"msg_id,omitempty"`
+		ReadRecords     map[string]string `mapstructure:"read_records"  json:"read_records,omitempty"` // 已读记录
 	}
 
 	Chat struct {

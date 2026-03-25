@@ -30,7 +30,7 @@ func newGroupMsgRead(push *ws.Push, pushCh chan *ws.Push) *groupMsgRead {
 		pushTime:       time.Now(),
 		done:           make(chan struct{}),
 	}
-	
+
 	// 开启协程处理 合并消息逻辑
 	go m.transfer()
 	return m
@@ -51,59 +51,63 @@ func (m *groupMsgRead) transfer() {
 	// 1、超时控制
 	// 2、超量发送
 
-	timer := time.NewTimer(GroupMsgReadRecordDelayTime / 2)
-	defer timer.Stop()
+	// 计算 ticker 间隔，确保至少 50ms，最多 500ms
+	tickerInterval := GroupMsgReadRecordDelayTime / 10
+	if tickerInterval < 50*time.Millisecond {
+		tickerInterval = 50 * time.Millisecond
+	}
+	if tickerInterval > 500*time.Millisecond {
+		tickerInterval = 500 * time.Millisecond
+	}
+
+	ticker := time.NewTicker(tickerInterval)
+	defer ticker.Stop()
+	defer func() {
+		// 处理退出前的剩余消息
+		m.mu.Lock()
+		if m.push != nil {
+			// 推送剩余消息
+			logx.Infof("退出前推送剩余消息 %v", m.push)
+			m.pushCh <- m.push
+			m.push = nil
+			m.count = 0
+		}
+		m.mu.Unlock()
+	}()
 
 	for {
 		select {
-		case <-timer.C:
+		case <-ticker.C:
 			m.mu.Lock()
-			pushTime := m.pushTime
-			val := GroupMsgReadRecordDelayTime - time.Since(pushTime)
-			push := m.push
-			logx.Infof("timer C %v val %v", time.Now(), val)
-
-			if val > 0 && m.count < GroupMsgReadRecordDelayCount || push == nil {
-				if val > 0 {
-					timer.Reset(val)
-				}
-
-				// 未达标
-				m.mu.Unlock()
-				continue
-			}
-			m.pushTime = time.Now()
-			m.count = 0
-			m.push = nil
-			timer.Reset(GroupMsgReadRecordDelayTime / 2)
-			m.mu.Unlock()
-			// 推送消息
-			logx.Infof("超过 合并的条件推送 %v", push)
-			m.pushCh <- push
-		case <-m.done:
-			return
-		default:
-			m.mu.Lock()
-
-			logx.Infof("groupMsgRead count %v push %v", m.count, m.push)
-
-			if m.count >= GroupMsgReadRecordDelayCount {
-				logx.Infof("groupMsgRead transfer ConversationId %v push %v", m.push.ConversationId, m.push)
-
+			// 检查是否达到数量阈值
+			if m.count >= GroupMsgReadRecordDelayCount && m.push != nil {
 				push := m.push
 				m.count = 0
 				m.push = nil
+				m.pushTime = time.Now()
 				m.mu.Unlock()
-
-				logx.Infof("达到推送量推送 %v", m.push)
+				// 推送消息
+				logx.Infof("达到数量阈值推送 %v", push)
+				m.pushCh <- push
+				continue
+			}
+			// 检查是否超时
+			if time.Since(m.pushTime) >= GroupMsgReadRecordDelayTime && m.push != nil {
+				push := m.push
+				m.count = 0
+				m.push = nil
+				m.pushTime = time.Now()
+				m.mu.Unlock()
+				// 推送消息
+				logx.Infof("超时推送 %v", push)
 				m.pushCh <- push
 				continue
 			}
 
-			m.mu.Unlock()
-			if m.IsIdle() {
-				m.mu.Lock()
-				// 使得 MsgReadTransfer 清理
+			// 检查是否空闲
+			if m.isIdle() {
+				m.mu.Unlock()
+				// 使得 MsgReadTransfer 释放
 				m.pushCh <- &ws.Push{
 					ChatType: constants.GroupChatType,
 					Content:  m.conversationId,
@@ -111,16 +115,85 @@ func (m *groupMsgRead) transfer() {
 				continue
 			}
 			m.mu.Unlock()
-
-			tempDelay := GroupMsgReadRecordDelayTime / 4
-			if tempDelay > time.Second {
-				tempDelay = time.Second
-			}
-			time.Sleep(tempDelay)
+		case <-m.done:
+			return
 		}
-
 	}
 }
+
+//func (m *groupMsgRead) transfer_old() {
+//	// 1、超时控制
+//	// 2、超量发送
+//
+//	timer := time.NewTimer(GroupMsgReadRecordDelayTime / 2)
+//	defer timer.Stop()
+//
+//	for {
+//		select {
+//		case <-timer.C:
+//			m.mu.Lock()
+//
+//			pushTime := m.pushTime
+//			val := GroupMsgReadRecordDelayTime - time.Since(pushTime)
+//			push := m.push
+//			logx.Infof("timer C %v val %v", time.Now(), val)
+//
+//			if val > 0 && m.count < GroupMsgReadRecordDelayCount || push == nil {
+//				if val > 0 {
+//					timer.Reset(val)
+//				}
+//				// 未达标
+//				m.mu.Unlock()
+//				continue
+//			}
+//			m.pushTime = time.Now()
+//			m.count = 0
+//			m.push = nil
+//			timer.Reset(GroupMsgReadRecordDelayTime / 2)
+//			m.mu.Unlock()
+//			// 推送消息
+//			logx.Infof("超过 合并的条件推送 %v", push)
+//			m.pushCh <- push
+//		case <-m.done:
+//			return
+//		default:
+//			m.mu.Lock()
+//
+//			logx.Infof("groupMsgRead count %v push %v", m.count, m.push)
+//
+//			if m.count >= GroupMsgReadRecordDelayCount {
+//				logx.Infof("groupMsgRead transfer ConversationId %v push %v", m.push.ConversationId, m.push)
+//				dump.P("groupMsgRead transfer ConversationId %v push %v", m.push.ConversationId, m.push)
+//				push := m.push
+//				m.count = 0
+//				m.push = nil
+//				m.mu.Unlock()
+//
+//				logx.Infof("default 达到推送量推送 %v", push)
+//				m.pushCh <- push
+//				continue
+//			}
+//
+//			if m.IsIdle() {
+//				m.mu.Unlock()
+//				// 使得 MsgReadTransfer 释放
+//				m.pushCh <- &ws.Push{
+//					ChatType: constants.GroupChatType,
+//					Content:  m.conversationId,
+//				}
+//				continue
+//			}
+//			m.mu.Unlock()
+//
+//			tempDelay := GroupMsgReadRecordDelayTime / 4
+//			if tempDelay > time.Second {
+//				tempDelay = time.Second
+//			}
+//			time.Sleep(tempDelay)
+//		}
+//
+//	}
+//}
 
 func (m *groupMsgRead) IsIdle() bool {
 	m.mu.Lock()
