@@ -8,12 +8,12 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   # macOS/Linux 版本
-  # bin = "./tmp/main"
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
   # cmd = "lsof -ti:8090 | xargs kill -9 >/dev/null 2>&1; go run ."
-  # cmd = "go build -o ./tmp/main ."
   # Windows
-  bin = "./tmp/main.exe" # windows 调整
-  cmd = "go build -o ./tmp/main.exe ."
+  # bin = "./tmp/main.exe" # windows 调整
+  # cmd = "go build -o ./tmp/main.exe ."
   delay = 1000
   entrypoint = []
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "logs", "node_modules", ".git"]
@@ -35,7 +35,7 @@ tmp_dir = "tmp"
   pre_cmd = []
   rerun = false
   rerun_delay = 500
-  send_interrupt = true # 发送中断信号让进程优雅退出
+  send_interrupt = false # Mac 必关，不影响 Windows
   stop_on_error = false
 
 [color]

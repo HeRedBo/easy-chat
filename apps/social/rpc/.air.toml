@@ -7,12 +7,14 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  # bin = "./tmp/main"
   # macOS/Linux 版本
-  # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
-  bin = "./tmp/main.exe" # windows 调整
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
+      # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
+  #
   # Windows 版本 核心：仅执行 go run .，无二进制相关配置
-  cmd = "go build -o ./tmp/main.exe ."
+  # bin = "./tmp/main.exe" # windows 调整
+  # cmd = "go build -o ./tmp/main.exe ."
 
   delay = 1000   # 文件修改后延迟1秒编译
   entrypoint = []
@@ -35,7 +37,7 @@ tmp_dir = "tmp"
   pre_cmd = []
   rerun = false
   rerun_delay = 500
-  send_interrupt = true  # 发送中断信号让进程优雅退出
+  send_interrupt = false # 发送中断信号让进程优雅退出
   stop_on_error = false
 
 [color]
