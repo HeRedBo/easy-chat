@@ -10,6 +10,7 @@ import (
 	"github.com/HeRedBo/easy-chat/pkg/ctxdata"
 	"github.com/HeRedBo/easy-chat/pkg/encrypt"
 	"github.com/HeRedBo/easy-chat/pkg/xerr"
+	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -59,8 +60,12 @@ func (l *LoginLogic) Login(in *user.LoginReq) (*user.LoginResp, error) {
 		return nil, errors.Wrapf(xerr.NewDBErr(), "ctxdata get jwt token err %v", err)
 		//return nil, err
 	}
+	var u user.UserEntity
+	_ = copier.Copy(&u, userEntity)
 	return &user.LoginResp{
 		Token:  token,
+		Id:     userEntity.Id,
+		User:   &u,
 		Expire: now + l.svcCtx.Config.Jwt.AccessExpire,
 	}, nil
 }

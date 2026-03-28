@@ -9,6 +9,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/types"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/userclient"
+	"github.com/HeRedBo/easy-chat/pkg/constants"
 	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -39,6 +40,9 @@ func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err erro
 	}
 	var res types.LoginResp
 	copier.Copy(&res, loginRes)
+
+	// 设置用户在线
+	_ = l.svcCtx.Redis.HsetCtx(l.ctx, constants.REDIS_ONLINE_USER, loginRes.Id, "1")
 	
 	return &res, nil
 }

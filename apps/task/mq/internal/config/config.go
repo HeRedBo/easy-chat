@@ -15,8 +15,8 @@ type Config struct {
 
 	ListenOn string
 
-	MsgChatTransfer        kq.KqConf
-	MsgReadTransferHandler kq.KqConf
+	MsgChatTransfer kq.KqConf
+	MsgReadTransfer kq.KqConf
 
 	MsgReadHandler struct {
 		GroupMsgReadHandler          int
