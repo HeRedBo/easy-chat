@@ -13,12 +13,11 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/config"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/svc"
+	"github.com/HeRedBo/easy-chat/pkg/configserver"
 	"github.com/HeRedBo/easy-chat/pkg/resultx"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/rest/httpx"
-
-	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/social.yaml", "the config file")
@@ -27,8 +26,30 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	//conf.MustLoad(*configFile, &c)
+	// 使用 GenericConfigService 管理配置
+	Configservice := configserver.NewGenericConfigService(*configFile, nil)
+	Configservice.SetConfigs("social-api.yaml").
+		SetNamespace("social").
+		SetRunFunc(func(v any) {
+			// 类型断言
+			cfg, ok := v.(*config.Config)
+			if !ok {
+				fmt.Errorf("invalid config type")
+			}
+			Run(*cfg)
+		})
 
+	// 启动配置服务
+	if err := Configservice.Start(&c); err != nil {
+		panic(err)
+	}
+	// 等待服务完成
+	Configservice.Wait()
+
+}
+
+func Run(c config.Config) {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
 

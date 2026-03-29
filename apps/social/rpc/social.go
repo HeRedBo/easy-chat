@@ -3,14 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/config"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/server"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/social"
+	"github.com/HeRedBo/easy-chat/pkg/configserver"
 	"github.com/HeRedBo/easy-chat/pkg/interceptor/rpcserver"
-
-	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
@@ -23,7 +26,29 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	//conf.MustLoad(*configFile, &c)
+	// 使用 GenericConfigService 管理配置
+	Configservice := configserver.NewGenericConfigService(*configFile, nil)
+	Configservice.SetConfigs("social-rpc.yaml").
+		SetNamespace("social").
+		SetRunFunc(func(v any) {
+			// 类型断言
+			cfg, ok := v.(*config.Config)
+			if !ok {
+				fmt.Errorf("invalid config type")
+			}
+			Run(*cfg)
+		})
+
+	// 启动配置服务
+	if err := Configservice.Start(&c); err != nil {
+		panic(err)
+	}
+	// 等待服务完成
+	Configservice.Wait()
+}
+
+func Run(c config.Config) {
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
@@ -37,5 +62,14 @@ func main() {
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
+	// 3. 监听退出信号（SIGINT/SIGTERM），实现优雅关闭
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-quit
+		logx.Info("Received exit signal, shutting down server...")
+		s.Stop() // 主动关闭服务器，释放端口
+		os.Exit(0)
+	}()
 	s.Start()
 }

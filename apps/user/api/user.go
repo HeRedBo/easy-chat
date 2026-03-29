@@ -8,32 +8,75 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/config"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/svc"
+	"github.com/HeRedBo/easy-chat/pkg/configserver"
 	"github.com/HeRedBo/easy-chat/pkg/resultx"
-	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/user.yaml", "the config file")
 
+var wg sync.WaitGroup
+
 func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	//conf.MustLoad(*configFile, &c)
 
+	err := configserver.NewConfigServer(*configFile, configserver.NewSail(&configserver.Config{
+		ETCDEndpoints: "127.0.0.1:2379",
+		ProjectKey:    "98c6f2c2287f4c73cea3d40ae7ec3ff2",
+		Namespace:     "user",
+		Configs:       "user-api.yaml",
+		//ConfigFilePath: "./etc/user.yaml",
+		ConfigFilePath: "", // 空字符串代表不存储本地配置文件
+		LogLevel:       "DEBUG",
+	})).MustLoad(&c, func(bytes []byte) error {
+		var c config.Config
+		_ = configserver.LoadFromJsonBytes(bytes, &c)
+		fmt.Println("配置更新", c)
+		// 配置更新了！
+		proc.WrapUp() // 优雅关闭旧资源
+		// 启新服务
+		wg.Add(1)
+		go func(c config.Config) {
+			defer wg.Done()
+			Run(c)
+		}(c)
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	wg.Add(1)
+	go func(c config.Config) {
+		defer wg.Done()
+		Run(c)
+	}(c)
+
+	// 等待所有 goroutine 完成
+	wg.Wait()
+}
+
+func Run(c config.Config) {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
 
+	// 初始化全局上下文（DB、Redis、RPC 等）
 	ctx := svc.NewServiceContext(c)
+	// 注册所有 API 接口
 	handler.RegisterHandlers(server, ctx)
-
+	// 统一返回格式
 	httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
 	httpx.SetOkHandler(resultx.OkHandler)
 
