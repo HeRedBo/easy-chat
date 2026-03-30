@@ -12,6 +12,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/social"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
+	"github.com/HeRedBo/easy-chat/pkg/interceptor"
 	"github.com/HeRedBo/easy-chat/pkg/interceptor/rpcserver"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
@@ -59,6 +60,7 @@ func Run(c config.Config) {
 		}
 	})
 	s.AddUnaryInterceptors(rpcserver.LogInterceptor)
+	s.AddUnaryInterceptors(interceptor.NewIdempotenceServer(interceptor.NewDefaultIdempotent(c.Cache[0].RedisConf)))
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
