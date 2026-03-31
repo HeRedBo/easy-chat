@@ -71,13 +71,12 @@ func main() {
 func Run(c config.Config) {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
-
 	// 初始化全局上下文（DB、Redis、RPC 等）
 	ctx := svc.NewServiceContext(c)
 	// 注册所有 API 接口
 	handler.RegisterHandlers(server, ctx)
 	// 统一返回格式
-	httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
+	//httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
 	httpx.SetOkHandler(resultx.OkHandler)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)

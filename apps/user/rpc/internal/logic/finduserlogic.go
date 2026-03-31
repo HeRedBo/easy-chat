@@ -24,6 +24,8 @@ func NewFindUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *FindUser
 	}
 }
 
+var hint int
+
 func (l *FindUserLogic) FindUser(in *user.FindUserReq) (*user.FindUserResp, error) {
 	// todo: add your logic here and delete this line
 	var (
@@ -51,10 +53,13 @@ func (l *FindUserLogic) FindUser(in *user.FindUserReq) (*user.FindUserResp, erro
 	if err != nil {
 		return nil, err
 	}
+	//hint++
+	//dump.P("find user -----", hint)
 
 	return &user.FindUserResp{
 		User: resp,
 	}, nil
+	//errors.WithStack(xerr.New(int(codes.DeadlineExceeded), "测试"))
 
 	return &user.FindUserResp{}, nil
 }

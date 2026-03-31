@@ -10,7 +10,6 @@ import (
 	"github.com/HeRedBo/easy-chat/pkg/ctxdata"
 	"github.com/HeRedBo/easy-chat/pkg/encrypt"
 	"github.com/HeRedBo/easy-chat/pkg/xerr"
-	"github.com/gookit/goutil/dump"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,8 +52,8 @@ func (l *LoginLogic) Login(in *user.LoginReq) (*user.LoginResp, error) {
 		return nil, errors.WithStack(ErrUserPwdError)
 		//return nil, ErrUserPwdError
 	}
-	dump.P("结束")
-	return nil, errors.New("做测试")
+	//dump.P("结束")
+	//return nil, errors.New("做测试")
 	// 生成token
 	now := time.Now().Unix()
 	token, err := ctxdata.GetJwtToken(l.svcCtx.Config.Jwt.AccessSecret, now, l.svcCtx.Config.Jwt.AccessExpire,

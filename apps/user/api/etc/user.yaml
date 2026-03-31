@@ -25,3 +25,10 @@ JwtAuth:
   AccessSecret: redbo.com
   AccessExpire: 8640000
 
+# 链路追踪配置
+Telemetry:
+  Name: user-api   # 服务名称，在 Jaeger UI 中显示
+  Endpoint: 127.0.0.1:4317
+  Sampler: 1.0    # 采样率，1.0 表示 100% 采样（开发环境建议全量）
+  Batcher: otlpgrpc
+

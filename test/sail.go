@@ -31,7 +31,7 @@ type Config struct {
 	}
 }
 
-func main() {
+func main01() {
 	var cfg Config
 	s := sail.New(&sail.MetaConfig{
 		ETCDEndpoints:  "127.0.0.1:2379",

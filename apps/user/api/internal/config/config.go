@@ -13,6 +13,7 @@ type Config struct {
 	rest.RestConf
 	Redisx  redis.RedisConf
 	UserRpc zrpc.RpcClientConf
+	
 	JwtAuth struct {
 		AccessSecret string
 		AccessExpire int64
