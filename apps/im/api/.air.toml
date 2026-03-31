@@ -8,12 +8,12 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   # macOS/Linux 版本
-  # bin = "./tmp/main"
-  # cmd = "go build -o ./tmp/main ."
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
   # cmd = "lsof -ti:8888 | xargs kill -9 >/dev/null 2>&1; go run ."
   # Windows 版本
-  bin = "./tmp/main.exe" # windows 调整
-  cmd = "go build -o ./tmp/main.exe ."
+  # bin = "./tmp/main.exe" # windows 调整
+  # cmd = "go build -o ./tmp/main.exe ."
   delay = 1000
   stop_on_change = true   # 重启前杀死旧 exe 进程
   kill_delay = "3000ms"   # 延长杀死进程时间

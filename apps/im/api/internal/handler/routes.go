@@ -18,7 +18,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				// 根据消息ID获取已读未读记录
 				Method:  http.MethodGet,
 				Path:    "/chatlog/records",
-				Handler: getChatLogReadRecordsHandler(serverCtx),
+				Handler: GetChatLogReadRecordsHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
