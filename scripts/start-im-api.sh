@@ -7,7 +7,7 @@ TARGET_DIR="$ROOT/apps/im/api"
 # 打开新终端并执行 air
 osascript <<EOF
 tell application "Terminal"
-    do script "cd '$TARGET_DIR' && air"
+    do script "cd '$TARGET_DIR' && air; kill -9 \$PPID"
     activate
 end tell
 EOF

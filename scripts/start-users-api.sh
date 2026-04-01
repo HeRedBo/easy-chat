@@ -4,10 +4,10 @@
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 TARGET_DIR="$ROOT/apps/user/api"
 
-# 打开新终端并执行 air
+# 打开新终端并执行 air + 退出时自动杀进程
 osascript <<EOF
 tell application "Terminal"
-    do script "cd '$TARGET_DIR' && air"
+    do script "cd '$TARGET_DIR' && air; kill -9 \$PPID"
     activate
 end tell
 EOF
