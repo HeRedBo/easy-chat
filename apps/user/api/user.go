@@ -15,11 +15,10 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
-	"github.com/HeRedBo/easy-chat/pkg/resultx"
+	"github.com/HeRedBo/easy-chat/pkg/resp"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/rest"
-	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/user.yaml", "the config file")
@@ -71,13 +70,15 @@ func main() {
 func Run(c config.Config) {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
+
 	// 初始化全局上下文（DB、Redis、RPC 等）
 	ctx := svc.NewServiceContext(c)
 	// 注册所有 API 接口
 	handler.RegisterHandlers(server, ctx)
 	// 统一返回格式
+	resp.Register()
 	//httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
-	httpx.SetOkHandler(resultx.OkHandler)
+	// httpx.SetOkHandler(resultx.OkHandler)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 

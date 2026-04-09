@@ -27,33 +27,33 @@ func TestWithRetry(t *testing.T) {
 	}{
 		{
 			"1", args{
-			ctx:     context.Background(),
-			handler: handler,
-			opts:    []RetryOptions{},
-		}, ErrJobTimeout,
+				ctx:     context.Background(),
+				handler: handler,
+				opts:    []RetryOptions{},
+			}, ErrJobTimeout,
 		},
 		{
 			"2", args{
-			ctx:     context.Background(),
-			handler: handler,
-			opts: []RetryOptions{
-				WithRetryTimeout(3 * time.Second),
-				WithRetryJetLagFunc(func(ctx context.Context, retryCount int, lastTime time.Duration) time.Duration {
-					return 500 * time.Millisecond
-				}),
-			},
-		}, ErrTest,
+				ctx:     context.Background(),
+				handler: handler,
+				opts: []RetryOptions{
+					WithRetryTimeout(3 * time.Second),
+					WithRetryJetLagFunc(func(ctx context.Context, retryCount int, lastTime time.Duration) time.Duration {
+						return 500 * time.Millisecond
+					}),
+				},
+			}, ErrTest,
 		},
 		{
 			"3", args{
-			ctx:     context.Background(),
-			handler: handler,
-			opts: []RetryOptions{
-				WithIsRetryFunc(func(ctx context.Context, retryCount int, err error) bool {
-					return false
-				}),
-			},
-		}, ErrTest,
+				ctx:     context.Background(),
+				handler: handler,
+				opts: []RetryOptions{
+					WithIsRetryFunc(func(ctx context.Context, retryCount int, err error) bool {
+						return false
+					}),
+				},
+			}, ErrTest,
 		},
 	}
 	for _, tt := range tests {
