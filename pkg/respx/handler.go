@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/HeRedBo/easy-chat/pkg/storex"
+	"github.com/HeRedBo/easy-chat/pkg/xerr"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -61,14 +62,19 @@ func OkHandler(ctx context.Context, data interface{}) any {
 
 // 全局错误处理（自动识别所有错误）
 func ErrHandler(ctx context.Context, err error) (int, any) {
-	logx.WithContext(ctx).Infof("ErrHandler called: %v", err) // 新增
+
 	var (
 		httpCode = http.StatusInternalServerError // 默认500
 		code     = ServerError
 		msg      = "服务器异常"
 	)
 
-	// 1. 处理自定义 CodeMsg 错误（业务主动抛出）
+	// 1. 处理自定义 BizError 错误（业务主动抛出）
+	if e, ok := err.(*xerr.BizError); ok {
+		return e.HttpCode, Fail(e.Code, e.Msg)
+	}
+
+	// 2. 再判断 go-zero 官方的 CodeMsg
 	var cm *xerrors.CodeMsg
 	errStr := err.Error()
 	if errors.As(err, &cm) {

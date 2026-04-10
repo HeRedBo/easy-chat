@@ -32,6 +32,7 @@ func NewDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DetailLogi
 
 func (l *DetailLogic) Detail(req *types.UserInfoReq) (resp *types.UserInfoResp, err error) {
 	// todo: add your logic here and delete this line
+	//return nil, xerr.NewAuthErr("授权自定义业务错误信息")
 	uid := ctxdata.GetUid(l.ctx)
 	userInfoResp, err := l.svcCtx.GetUserInfo(l.ctx, &user.GetUserInfoReq{
 		Id: uid,
