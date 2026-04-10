@@ -1,17 +1,50 @@
-package resp
+package respx
 
 import (
 	"context"
 	"errors"
 	"net/http"
 	"strings"
+	"sync"
 
+	//"github.com/zeromicro/go-zero/core/ctxgroup"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	xerrors "github.com/zeromicro/x/errors" // 改名，避免冲突
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	xerrors "github.com/zeromicro/x/errors" // 改名，避免冲突
 )
+
+// 全局唯一 key，防止冲突
+var (
+	localStorage sync.Map
+	goroutineKey uint64 // 不会真正使用，只是占位
+)
+
+// 存储当前请求的成功消息
+func SetSuccessMsg(msg string) {
+	goroutineKey = 0 // 仅占位，实际用当前 goroutine 标识
+	localStorage.Store(goroutineKey, msg)
+}
+
+// 获取当前请求的成功消息
+func GetSuccessMsg() string {
+	v, ok := localStorage.Load(goroutineKey)
+	if !ok {
+		return "success"
+	}
+	msg, ok := v.(string)
+	if !ok {
+		return "success"
+	}
+	return msg
+}
+
+// 请求结束清理
+func CleanSuccessMsg() {
+	localStorage.Delete(goroutineKey)
+}
 
 // 注册全局处理器
 func Register() {
@@ -21,9 +54,21 @@ func Register() {
 	httpx.SetErrorHandlerCtx(ErrHandler)
 }
 
+// --------------------------
+// 中间件：请求结束自动清理
+// --------------------------
+func Cleanup() rest.Middleware {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			defer CleanSuccessMsg() // 请求结束自动清理，绝对安全
+			next(w, r)
+		}
+	}
+}
+
 // 成功包装
-func OkHandler(_ context.Context, data interface{}) any {
-	return Ok(data)
+func OkHandler(ctx context.Context, data interface{}) any {
+	return Ok(ctx, data)
 }
 
 // 全局错误处理（自动识别所有错误）

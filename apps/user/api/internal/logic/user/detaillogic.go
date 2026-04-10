@@ -10,6 +10,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/types"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/user"
 	"github.com/HeRedBo/easy-chat/pkg/ctxdata"
+	"github.com/HeRedBo/easy-chat/pkg/respx"
 	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -40,5 +41,6 @@ func (l *DetailLogic) Detail(req *types.UserInfoReq) (resp *types.UserInfoResp, 
 	}
 	var res types.User
 	copier.Copy(&res, userInfoResp.User)
+	respx.SetSuccessMsg("获取用户信息成功")
 	return &types.UserInfoResp{Info: res}, nil
 }

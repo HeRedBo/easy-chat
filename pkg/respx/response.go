@@ -1,4 +1,6 @@
-package resp
+package respx
+
+import "context"
 
 type Response struct {
 	Code    int         `json:"code"`    // 业务码
@@ -7,10 +9,10 @@ type Response struct {
 }
 
 // Ok 成功返回
-func Ok(data interface{}) *Response {
+func Ok(_ context.Context, data interface{}) *Response {
 	return &Response{
 		Code:    Success,
-		Message: "success",
+		Message: GetSuccessMsg(),
 		Data:    data,
 	}
 }

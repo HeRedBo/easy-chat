@@ -15,7 +15,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
-	"github.com/HeRedBo/easy-chat/pkg/resp"
+	"github.com/HeRedBo/easy-chat/pkg/respx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/rest"
@@ -75,8 +75,10 @@ func Run(c config.Config) {
 	ctx := svc.NewServiceContext(c)
 	// 注册所有 API 接口
 	handler.RegisterHandlers(server, ctx)
+
 	// 统一返回格式
-	resp.Register()
+	respx.Register()
+	server.Use(respx.Cleanup())
 	//httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
 	// httpx.SetOkHandler(resultx.OkHandler)
 

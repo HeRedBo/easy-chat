@@ -1,4 +1,4 @@
-package resp
+package respx
 
 // HTTP 状态码语义
 // 200 成功
