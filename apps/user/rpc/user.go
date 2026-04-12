@@ -34,7 +34,7 @@ func main() {
 			// 类型断言
 			cfg, ok := v.(*config.Config)
 			if !ok {
-				fmt.Errorf("invalid config type")
+				panic(fmt.Sprintf("invalid config type: %T", v)) // 直接 panic 终止程序
 			}
 			Run(*cfg)
 		})
