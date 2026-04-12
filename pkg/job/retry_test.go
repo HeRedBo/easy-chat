@@ -49,7 +49,7 @@ func TestWithRetry(t *testing.T) {
 				ctx:     context.Background(),
 				handler: handler,
 				opts: []RetryOptions{
-					WithIsRetryFunc(func(ctx context.Context, retryCount int, err error) bool {
+					WithRetryIsFunc(func(ctx context.Context, retryCount int, err error) bool {
 						return false
 					}),
 				},

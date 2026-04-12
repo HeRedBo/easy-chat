@@ -15,19 +15,19 @@ import (
 )
 
 var retryPolicy = `{
-	"methodConfig" : [{
-		"name": [{
-			"service": "user.User"
-		}],
-		"waitForReady": true,
-		"retryPolicy": {
-			"maxAttempts": 4,
-			"initialBackoff": "0.001s",
-			"maxBackoff": "0.002s",
-			"backoffMultiplier": 1.0,
-			"retryableStatusCodes": ["UNKNOWN"]
-		}
-	}]
+  "methodConfig": [{
+	"name": [{
+		"service": "social.social"
+	}],
+	"waitForReady": true,
+	"retryPolicy": {
+	   "MaxAttempts": 5,
+	   "InitialBackoff": "1s",
+	   "MaxBackoff": "1s",
+	   "BackoffMultiplier": 1.0,
+	   "RetryableStatusCodes": ["UNKNOWN", "DEADLINE_EXCEEDED"]
+	}
+  }]
 }`
 
 type ServiceContext struct {

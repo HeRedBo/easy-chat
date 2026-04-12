@@ -60,7 +60,7 @@ func Run(c config.Config) {
 		}
 	})
 	s.AddUnaryInterceptors(rpcserver.LogInterceptor)
-	s.AddUnaryInterceptors(interceptor.NewIdempotenceServer(interceptor.NewDefaultIdempotent(c.Cache[0].RedisConf)))
+	s.AddUnaryInterceptors(interceptor.NewIdempotenceServer(interceptor.NewDefaultIdempotent(c.Redisx)))
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

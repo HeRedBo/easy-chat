@@ -19,7 +19,6 @@ func LogInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, ha
 	}
 
 	logx.WithContext(ctx).Errorf("【RPC SRV ERR】 %v", err)
-
 	causeErr := errors.Cause(err)
 	if e, ok := causeErr.(*zerr.CodeMsg); ok {
 		err = status.Error(codes.Code(e.Code), e.Msg)

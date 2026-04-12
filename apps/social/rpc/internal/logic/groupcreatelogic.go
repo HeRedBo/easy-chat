@@ -58,7 +58,7 @@ func (l *GroupCreateLogic) GroupCreate(in *social.GroupCreateReq) (*social.Group
 		}
 		return nil
 	})
-
+	//time.Sleep(2 * time.Second)
 	return &social.GroupCreateResp{
 		Id: groups.Id,
 	}, err

@@ -1,4 +1,4 @@
-Name: social.rpc
+strName: social.rpc
 ListenOn: 0.0.0.0:8091
 Etcd:
   Hosts:
@@ -15,3 +15,9 @@ Cache:
   - Host: 127.0.0.1:6379
     Type: node
     Pass: "123456"
+
+Redisx:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: "123456"
+  
