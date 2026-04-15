@@ -1,7 +1,7 @@
 FROM alpine:3.18
 
 # 添加时区处理
-RUN echo -e "https://mirrors.aliyun.com/alpine/v3.18/main\nhttps://mirrors.aliyun.com/alpine/v3.18/community" > /etc/apk/repositories && \
+RUN echo -e "https://mirrors.aliyun.com/alpine/v3.18/main\nhttps://mirrors.aliyun.com/alpine/v3.18/community/" > /etc/apk/repositories && \
     apk update &&\
     apk --no-cache add tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \

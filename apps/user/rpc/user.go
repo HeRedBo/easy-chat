@@ -12,6 +12,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/user"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
+	"github.com/HeRedBo/easy-chat/pkg/env"
 	"github.com/HeRedBo/easy-chat/pkg/interceptor/rpcserver"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
@@ -26,9 +27,23 @@ func main() {
 	flag.Parse()
 	var c config.Config
 	//conf.MustLoad(*configFile, &c)
+
 	// 使用 GenericConfigService 管理配置
-	Configservice := configserver.NewGenericConfigService(*configFile, nil)
-	Configservice.SetConfigs("user-rpc.yaml").
+	var baseConfig *configserver.Config
+	var etcFileName = "user-rpc.yaml"
+	if env.IsDockerContainer() {
+		// 修复 Docker 容器中 ETCD 地址问题
+		baseConfig = &configserver.Config{
+			ETCDEndpoints:  "host.docker.internal:2379",
+			ProjectKey:     "98c6f2c2287f4c73cea3d40ae7ec3ff2",
+			ConfigFilePath: "", // 空字符串表示不存储本地配置文件
+			LogLevel:       "DEBUG",
+		}
+		etcFileName = "user-rpc-dev.yaml"
+	}
+
+	Configservice := configserver.NewGenericConfigService(*configFile, baseConfig)
+	Configservice.SetConfigs(etcFileName).
 		SetNamespace("user").
 		SetRunFunc(func(v any) {
 			// 类型断言
