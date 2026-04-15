@@ -1,9 +1,10 @@
-Name: social.rpc
+Name: user.rpc
 ListenOn: 0.0.0.0:10000
+
 Etcd:
   Hosts:
   - host.docker.internal:2379
-  Key: social.rpc
+  Key: user.rpc
 
 Mysql:
   DataSource: root:admin123@tcp(host.docker.internal:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
@@ -11,12 +12,23 @@ Mysql:
   MaxIdleConns: 5  # 最大空闲连接数
   ConnMaxLifetime: 300s # 连接最大存活时间
 
+Redisx:
+  Host: host.docker.internal:6379
+  Type: node
+  Pass: "123456"
+
 Cache:
   - Host: host.docker.internal:6379
     Type: node
     Pass: "123456"
 
-Redisx:
-  Host: host.docker.internal:6379
-  Type: node
-  Pass: "123456"
+Jwt:
+  AccessSecret: redbo.com
+  AccessExpire: 8640000
+
+# 链路追踪配置
+Telemetry:
+  Name: user-rpc   # 服务名称，在 Jaeger UI 中显示
+  Endpoint: http://host.docker.internal:14268/api/traces
+  Sampler: 1.0    # 采样率，1.0 表示 100% 采样（开发环境建议全量）
+  Batcher: jaeger     # 导出协议，go-zero 默认支持 jaeger
