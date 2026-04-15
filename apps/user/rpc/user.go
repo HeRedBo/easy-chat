@@ -11,8 +11,8 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/internal/server"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/user"
+	"github.com/HeRedBo/easy-chat/pkg/configserver"
 	"github.com/HeRedBo/easy-chat/pkg/interceptor/rpcserver"
-	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -25,28 +25,27 @@ var configFile = flag.String("f", "etc/user.yaml", "the config file")
 func main() {
 	flag.Parse()
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	//conf.MustLoad(*configFile, &c)
 	// 使用 GenericConfigService 管理配置
-	// Configservice := configserver.NewGenericConfigService(*configFile, nil)
-	// Configservice.SetConfigs("user-rpc.yaml").
-	// 	SetNamespace("user").
-	// 	SetRunFunc(func(v any) {
-	// 		// 类型断言
-	// 		cfg, ok := v.(*config.Config)
-	// 		if !ok {
-	// 			panic(fmt.Sprintf("invalid config type: %T", v)) // 直接 panic 终止程序
-	// 		}
-	// 		Run(*cfg)
-	// 	})
+	Configservice := configserver.NewGenericConfigService(*configFile, nil)
+	Configservice.SetConfigs("user-rpc.yaml").
+		SetNamespace("user").
+		SetRunFunc(func(v any) {
+			// 类型断言
+			cfg, ok := v.(*config.Config)
+			if !ok {
+				panic(fmt.Sprintf("invalid config type: %T", v)) // 直接 panic 终止程序
+			}
+			Run(*cfg)
+		})
 
-	// // 启动配置服务
-	// if err := Configservice.Start(&c); err != nil {
-	// 	panic(err)
-	// }
-	// // 等待服务完成
-	// Configservice.Wait()\
+	// 启动配置服务
+	if err := Configservice.Start(&c); err != nil {
+		panic(err)
+	}
+	// 等待服务完成
+	Configservice.Wait()
 
-	Run(c)
 }
 
 func Run(c config.Config) {
