@@ -1,0 +1,22 @@
+Name: social.rpc
+ListenOn: 0.0.0.0:10000
+Etcd:
+  Hosts:
+  - host.docker.internal:2379
+  Key: social.rpc
+
+Mysql:
+  DataSource: root:admin123@tcp(host.docker.internal:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
+  MaxOpenConns: 10 # 最大打开连接数
+  MaxIdleConns: 5  # 最大空闲连接数
+  ConnMaxLifetime: 300s # 连接最大存活时间
+
+Cache:
+  - Host: host.docker.internal:6379
+    Type: node
+    Pass: "123456"
+
+Redisx:
+  Host: host.docker.internal:6379
+  Type: node
+  Pass: "123456"
