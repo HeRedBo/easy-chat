@@ -1,3 +1,17 @@
+# ===================== 阶段 1：编译 =====================
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+COPY . .
+
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags "-s -w" \
+    -o server \
+    ./apps/user/api/user.go
+
+
+# ===================== 阶段 2：运行 =====================
 FROM alpine:3.18
 
 # 添加时区处理
@@ -9,11 +23,14 @@ RUN echo -e "https://mirrors.aliyun.com/alpine/v3.18/main\nhttps://mirrors.aliyu
 ENV TZ=Asia/Shanghai
 
 ARG SERVER_NAME=user
-ARG SERVER_TYPE=rpc
+ARG SERVER_TYPE=api
 
-# 定义相对路径 
-ENV RUN_BIN=bin/${SERVER_NAME}-${SERVER_TYPE}
-ENV RUN_CONF=conf/${SERVER_NAME}.yaml
+# 定义绝对路径 
+ENV BIN_DIR=/${SERVER_NAME}/bin
+ENV CONF_DIR=/${SERVER_NAME}/conf
+ENV BIN_FILE=${BIN_DIR}/${SERVER_NAME}-${SERVER_TYPE}
+ENV CONF_FILE=${CONF_DIR}/${SERVER_NAME}.yaml
+
 
 # 目录 
 # 这个关键词的意思是复制的意思，可以将宿主机中的内容复制到容器中
@@ -23,23 +40,28 @@ RUN mkdir -p /${SERVER_NAME}/bin /${SERVER_NAME}/conf
 # 进入容器
 WORKDIR /${SERVER_NAME}
 
-# ==================== 关键 ====================
-# 直接拷贝【你本地编译好的二进制】
-COPY ./bin/${SERVER_NAME}-${SERVER_TYPE} /${SERVER_NAME}/bin/
 
-# 直接拷贝配置文件
+# ==========================================
+# 双模式核心（稳定不报错）
+# 1. 放CI构建文件
+# 2. 本地文件自动覆盖（有就覆盖，无跳过）
+# ==========================================
+COPY --from=builder /app/server ${BIN_FILE}
+# 【修复语法错误】必须拷贝到目录，不能直接覆盖文件
+COPY ./bin/ ${BIN_DIR}/
+
+# 配置文件
 COPY ./apps/${SERVER_NAME}/${SERVER_TYPE}/etc/dev/${SERVER_NAME}.yaml /${SERVER_NAME}/conf/
 
 # 为二进制提供执行权限
-RUN chmod +x ${RUN_BIN}
+RUN chmod +x ${BIN_FILE}
 # 健康检查（判断服务是否真正就绪）
 HEALTHCHECK --interval=5s --timeout=2s --retries=3 \
-    CMD netstat -tuln | grep 8080 || exit 1
+    CMD netstat -tuln | grep 8888 || exit 1
 # 启动
 # windows 下需要指定配置文件
 # ENTRYPOINT ["/user/bin/user-rpc", "-f", "/user/conf/user.yaml"]
-
 # 替换成这个：让容器一直活着，你可以进去操作
 # CMD ["sleep", "infinity"]
-
-ENTRYPOINT ${RUN_BIN} -f ${RUN_CONF}
+ENTRYPOINT ["/user/bin/user-api", "-f", "/user/conf/user.yaml"]
+# ENTRYPOINT ${RUN_BIN} -f ${RUN_CONF}

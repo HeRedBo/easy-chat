@@ -15,6 +15,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/user/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
+	"github.com/HeRedBo/easy-chat/pkg/env"
 	"github.com/HeRedBo/easy-chat/pkg/respx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
@@ -30,16 +31,30 @@ func main() {
 
 	var c config.Config
 	//conf.MustLoad(*configFile, &c)
+	var baseConfig *configserver.Config
+	if env.IsDockerContainer() {
+		// 修复 Docker 容器中 ETCD 地址问题
+		baseConfig = &configserver.Config{
+			ETCDEndpoints:  "host.docker.internal:2379",
+			ProjectKey:     "98c6f2c2287f4c73cea3d40ae7ec3ff2",
+			Namespace:      "user",
+			Configs:        "user-api-dev.yaml",
+			ConfigFilePath: "", // 空字符串表示不存储本地配置文件
+			LogLevel:       "DEBUG",
+		}
+	} else {
+		baseConfig = &configserver.Config{
+			ETCDEndpoints: "127.0.0.1:2379",
+			ProjectKey:    "98c6f2c2287f4c73cea3d40ae7ec3ff2",
+			Namespace:     "user",
+			Configs:       "user-api.yaml",
+			//ConfigFilePath: "./etc/user.yaml",
+			ConfigFilePath: "", // 空字符串代表不存储本地配置文件
+			LogLevel:       "DEBUG",
+		}
+	}
 
-	err := configserver.NewConfigServer(*configFile, configserver.NewSail(&configserver.Config{
-		ETCDEndpoints: "127.0.0.1:2379",
-		ProjectKey:    "98c6f2c2287f4c73cea3d40ae7ec3ff2",
-		Namespace:     "user",
-		Configs:       "user-api.yaml",
-		//ConfigFilePath: "./etc/user.yaml",
-		ConfigFilePath: "", // 空字符串代表不存储本地配置文件
-		LogLevel:       "DEBUG",
-	})).MustLoad(&c, func(bytes []byte) error {
+	err := configserver.NewConfigServer(*configFile, configserver.NewSail(baseConfig)).MustLoad(&c, func(bytes []byte) error {
 		var c config.Config
 		_ = configserver.LoadFromJsonBytes(bytes, &c)
 		fmt.Println("配置更新", c)

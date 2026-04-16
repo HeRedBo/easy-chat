@@ -1,0 +1,38 @@
+Name: user
+Host: 0.0.0.0
+Port: 8888
+Mode: dev
+
+Prometheus:
+  Host: host.docker.internal
+  Port: 9102
+  Path: /metrics
+
+#UserRpc:
+#  Endpoints:
+#    - host.docker.internal:8080
+#  Retries: 3           # 纯数字，无引号
+#  LoadBalance: random  # 字符串，可选值：random/roundrobin
+
+Redisx:
+  Host: host.docker.internal:6379
+  Type: node
+  Pass: "123456"
+
+UserRpc:
+  Etcd:
+    Hosts:
+      - host.docker.internal:2379
+    Key: user.rpc
+
+JwtAuth:
+  AccessSecret: redbo.com
+  AccessExpire: 8640000
+
+# 链路追踪配置
+Telemetry:
+  Name: user-api   # 服务名称，在 Jaeger UI 中显示
+  Endpoint: host.docker.internal:4317
+  Sampler: 1.0    # 采样率，1.0 表示 100% 采样（开发环境建议全量）
+  Batcher: otlpgrpc
+
