@@ -1,3 +1,17 @@
+# ===================== 阶段 1：编译 =====================
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+COPY . .
+
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags "-s -w" \
+    -o server \
+    ./apps/user/api/user.go
+
+
+# ===================== 阶段 2：运行 =====================
 FROM alpine:3.18
 
 # 添加时区处理
@@ -18,7 +32,6 @@ ENV BIN_FILE=${BIN_DIR}/${SERVER_NAME}-${SERVER_TYPE}
 ENV CONF_FILE=${CONF_DIR}/${SERVER_NAME}.yaml
 
 
-
 # 目录 
 # 这个关键词的意思是复制的意思，可以将宿主机中的内容复制到容器中
 # 命令 左边是宿主机的目录，右边是容器目录
@@ -27,11 +40,15 @@ RUN mkdir -p /${SERVER_NAME}/bin /${SERVER_NAME}/conf
 # 进入容器
 WORKDIR /${SERVER_NAME}
 
-# ========================
-# 直接拷贝本地编译好的文件
-# ========================
-COPY ./bin/${SERVER_NAME}-${SERVER_TYPE} ${BIN_FILE}
-COPY ./apps/${SERVER_NAME}/${SERVER_TYPE}/etc/dev/${SERVER_NAME}.yaml ${CONF_FILE}
+
+# ==========================================
+# 双模式核心（稳定不报错）
+# 1. 放CI构建文件
+# 2. 本地文件自动覆盖（有就覆盖，无跳过）
+# ==========================================
+COPY --from=builder /app/server ${BIN_FILE}
+# 【修复语法错误】必须拷贝到目录，不能直接覆盖文件
+COPY ./bin/ ${BIN_DIR}/
 
 # 配置文件
 COPY ./apps/${SERVER_NAME}/${SERVER_TYPE}/etc/dev/${SERVER_NAME}.yaml /${SERVER_NAME}/conf/
