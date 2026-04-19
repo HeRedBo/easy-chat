@@ -234,8 +234,6 @@ make -f deploy/make/build.mk build SVR=im MOD=api ENV=prod
 更多部署细节请参考 [📋 deploy/README.md](./deploy/README.md)，包含：
 - 🌍 多环境配置管理（dev/test/prv/prod）
 - ☁️ 阿里云镜像仓库配置
-- ☸️ Kubernetes 部署 YAML
-- 🔄 CI/CD 流水线配置
 
 ---
 
