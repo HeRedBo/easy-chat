@@ -104,7 +104,7 @@ func (s *Server) ServerWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addConn(conn *Conn, req *http.Request) {
-	// 此处是map的写操作，在操作上会存在并发的可能问题
+
 	uid := s.authentication.UserId(req)
 
 	s.RWMutex.Lock()
@@ -286,31 +286,31 @@ func (s *Server) readAck(conn *Conn) {
 				s.Infof("message ack rigorAck success mid %v ", message.Id)
 				continue
 			}
+
 			// 很显然没有处理成功，先看看有没有超时
+			// 2. 客户端没有确认，考虑是否超过了ack的确认时间
 			val := s.opt.actTimeout - time.Since(msgSeq.AckTime)
 			if !message.AckTime.IsZero() && val <= 0 {
 				// TODO 超时了 可以选择断开与客户端连接，实际具体细节仍需要自己结合业务完善，此选择放弃该消息
 				s.Errorf("message ack rigorAck fail mid %v  time %v because timeout", message.Id, message.AckTime)
+				// 2.2 超过结束确认
 				delete(conn.readMessageSeq, message.Id)
 				conn.readMessages = conn.readMessages[1:]
 				conn.messageMu.Unlock()
 				continue
 			}
-
+			// 2.1 未超过，重新发送
 			conn.messageMu.Unlock()
-			if val > 0 && val > 300*time.Millisecond {
-				err := send(&Message{
-					FrameType: FrameAck,
-					AckSeq:    message.AckSeq,
-					Id:        message.Id,
-				}, conn)
-				if err != nil {
-					return
-				}
+			err := send(&Message{
+				FrameType: FrameAck,
+				AckSeq:    message.AckSeq,
+				Id:        message.Id,
+			}, conn)
+			if err != nil {
+				return
 			}
 			// 没有超时，让程序等等
-			//time.Sleep(300 * time.Millisecond)
-			time.Sleep(1 * time.Second) // 调整为 1s
+			time.Sleep(3 * time.Second) // 调整为 3s
 		}
 	}
 

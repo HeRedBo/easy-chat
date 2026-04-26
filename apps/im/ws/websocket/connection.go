@@ -15,7 +15,7 @@ type Conn struct {
 	idleMu            sync.Mutex // guard the following
 	idle              time.Time
 	maxConnectionIdle time.Duration
-	
+
 	// 消息队列
 	messageMu      sync.Mutex
 	readMessages   []*Message
@@ -128,7 +128,7 @@ func (c *Conn) keepalive() {
 			if val <= 0 {
 				// The connection has been idle for a duration of keepalive.MaxConnectionIdle or more.
 				// Gracefully close the connection.
-				//c.s.Close(c)
+				c.s.Close(c)
 				return
 			}
 			idleTimer.Reset(val)
