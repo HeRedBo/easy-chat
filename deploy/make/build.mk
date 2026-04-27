@@ -9,8 +9,8 @@
 # ==============================================
 
 # 白名单配置
-ALLOWED_SVRS := user # im task
-ALLOWED_MODS := rpc api #  mq
+ALLOWED_SVRS := user im social task
+ALLOWED_MODS := rpc api mq ws
 ALLOWED_ENVS := dev test prv prod
 
 # 外部传入参数
