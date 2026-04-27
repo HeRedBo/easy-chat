@@ -61,13 +61,13 @@ ifneq ($(filter $(MOD),$(ALLOWED_MODS)),$(MOD))
 endif
 
 # ==============================================
-# 2. 自动从 yaml 读取端口 调用外部 Go 脚本获取端口
+# 2. 自动从 yaml 读取端口
 # ==============================================
 get-port:
-	$(eval PORT=$(shell go run ./deploy/make/port_getter.go $(APP_YAML) $(MOD)))
-	@echo -n "$(PORT)" > .port
+	@go run ./deploy/make/port_getter.go $(APP_YAML) $(MOD) > .port 2>&1
 
-PORT := $(shell cat .port 2>/dev/null)
+# 读取端口（在目标执行时动态读取）
+PORT=$(shell cat .port 2>/dev/null)
 
 # ==============================================
 # 3. 查看信息（新增）
@@ -85,7 +85,7 @@ info: check get-port
 	@echo "Image: $(IMAGE_TAG)"
 	@echo "Dockerfile:  $(DOCKERFILE)"
 	@echo "========================================"
-	@rm -f .port
+	@rm -f .port 2>/dev/null
 
 # ==============================================
 # 4. 本地构建
@@ -94,15 +94,19 @@ build: check get-port
 	@echo "[GO] Compile binary..."
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o $(APP_BIN) $(APP_MAIN_FILE)
 
-	@echo "[Docker] Build image..."
+	@echo "[Docker] Build image with PORT=$(PORT)..."
 	docker build . \
 		-f $(DOCKERFILE) \
 		--build-arg SERVER_NAME=$(SVR) \
 		--build-arg SERVER_TYPE=$(MOD) \
 		--build-arg PORT=$(PORT) \
+		--label "service.name=$(SVR)" \
+		--label "service.type=$(MOD)" \
+		--label "service.port=$(PORT)" \
+		--label "build.time=$(shell date +%Y-%m-%dT%H:%M:%S%z)" \
 		-t $(IMAGE_TAG)
 
-	@rm -f .port
+	@rm -f .port 2>/dev/null
 	@echo "[SUCCESS] Build complete: $(IMAGE_TAG)"
 
 # ==============================================

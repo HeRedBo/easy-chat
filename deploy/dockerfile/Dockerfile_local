@@ -4,6 +4,9 @@ ARG SERVER_NAME
 ARG SERVER_TYPE
 ARG PORT=
 
+# 将构建参数转为环境变量，使运行时可用
+ENV PORT=${PORT}
+
 RUN echo -e "https://mirrors.aliyun.com/alpine/v3.18/main\nhttps://mirrors.aliyun.com/alpine/v3.18/community/" > /etc/apk/repositories && \
     apk update &&\
     apk --no-cache add tzdata && \
