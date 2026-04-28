@@ -9,11 +9,19 @@ type BizError struct {
 	Code     int
 	Msg      string
 	HttpCode int
+	Cause    error
 }
 
 // 实现 error 接口
 func (e *BizError) Error() string {
+	if e.Cause != nil {
+		return e.Msg + ": " + e.Cause.Error()
+	}
 	return e.Msg
+}
+
+func (e *BizError) Unwrap() error {
+	return e.Cause
 }
 
 // 基础创建

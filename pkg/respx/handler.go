@@ -70,8 +70,9 @@ func ErrHandler(ctx context.Context, err error) (int, any) {
 	)
 
 	// 1. 处理自定义 BizError 错误（业务主动抛出）
-	if e, ok := err.(*xerr.BizError); ok {
-		return e.HttpCode, Fail(e.Code, e.Msg)
+	var bizErr *xerr.BizError
+	if errors.As(err, &bizErr) {
+		return bizErr.HttpCode, Fail(bizErr.Code, bizErr.Msg)
 	}
 
 	// 2. 再判断 go-zero 官方的 CodeMsg
@@ -140,7 +141,7 @@ func ErrHandler(ctx context.Context, err error) (int, any) {
 
 log:
 	// 日志记录
-	logx.WithContext(ctx).Errorf("err: %s", err.Error())
+	logx.WithContext(ctx).Errorf("err: %+v", err.Error())
 	logx.WithContext(ctx).Errorf("final response: code=%d http=%d msg=%s", code, httpCode, msg)
 	return httpCode, Fail(code, msg)
 }

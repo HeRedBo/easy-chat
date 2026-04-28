@@ -13,11 +13,10 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/im/api/internal/config"
 	"github.com/HeRedBo/easy-chat/apps/im/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/im/api/internal/svc"
-	"github.com/HeRedBo/easy-chat/pkg/resultx"
+	"github.com/HeRedBo/easy-chat/pkg/respx"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
-	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/im.yaml", "the config file")
@@ -33,9 +32,10 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+	// 统一返回格式
+	respx.Register()
+	server.Use(respx.Cleanup())
 
-	httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
-	httpx.SetOkHandler(resultx.OkHandler)
 	// 3. 监听退出信号（SIGINT/SIGTERM），实现优雅关闭
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
