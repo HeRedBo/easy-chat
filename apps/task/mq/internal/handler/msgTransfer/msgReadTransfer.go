@@ -75,6 +75,7 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 		SendId:         data.SendId,
 		RecvId:         data.RecvId,
 		ContentType:    constants.ContentMakeRead,
+		MsgKind:        constants.MsgKindReadAck,
 		ReadRecords:    ReadRecords,
 	}
 

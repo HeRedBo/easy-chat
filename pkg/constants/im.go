@@ -19,3 +19,12 @@ const (
 	ContentChatMsg ContentType = iota
 	ContentMakeRead
 )
+
+type MsgKind int
+
+const (
+	MsgKindChat MsgKind = iota
+	MsgKindReadAck
+	MsgKindRevoke
+	MsgKindSystem
+)

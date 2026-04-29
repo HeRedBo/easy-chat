@@ -14,11 +14,12 @@ type (
 	}
 
 	Chat struct {
-		ConversationId     string `mapstructure:"conversation_id" json:"conversation_id,omitempty"`
+		ConversationId     string             `mapstructure:"conversation_id" json:"conversation_id,omitempty"`
 		constants.ChatType `mapstructure:"chat_type" json:"chat_type,omitempty"`
-		SendId             string `mapstructure:"send_id" json:"send_id,omitempty"`
-		RecvId             string `mapstructure:"recv_id" json:"recv_id,omitempty"`
-		SendTime           int64  `mapstructure:"send_time" json:"send_time,omitempty"`
+		SendId             string             `mapstructure:"send_id" json:"send_id,omitempty"`
+		RecvId             string             `mapstructure:"recv_id" json:"recv_id,omitempty"`
+		SendTime           int64              `mapstructure:"send_time" json:"send_time,omitempty"`
+		MsgKind            constants.MsgKind  `mapstructure:"msg_kind" json:"msg_kind,omitempty"`
 		Msg                `mapstructure:"msg" json:"msg,omitempty"`
 	}
 
@@ -39,6 +40,7 @@ type (
 		MsgId       string                `mapstructure:"msg_id"`
 		ReadRecords map[string]string     `mapstructure:"read_records"` // 已读记录
 		ContentType constants.ContentType `mapstructure:"content_type"`
+		MsgKind     constants.MsgKind     `mapstructure:"msg_kind"`
 		Content     string                `mapstructure:"content"`
 	}
 

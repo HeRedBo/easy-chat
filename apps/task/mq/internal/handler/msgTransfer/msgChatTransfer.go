@@ -9,6 +9,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/im/ws/ws"
 	"github.com/HeRedBo/easy-chat/apps/task/mq/internal/svc"
 	"github.com/HeRedBo/easy-chat/apps/task/mq/mq"
+	"github.com/HeRedBo/easy-chat/pkg/constants"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -52,6 +53,7 @@ func (m *MsgChatTransfer) Consume(ctx context.Context, key, value string) error 
 		SendTime:       data.SendTime,
 		MType:          data.MType,
 		MsgId:          MsgId.Hex(),
+		MsgKind:        constants.MsgKindChat,
 		Content:        data.Content,
 	})
 }
