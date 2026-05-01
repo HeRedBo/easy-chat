@@ -3,8 +3,8 @@ package validator
 import (
 	"fmt"
 
+	"github.com/HeRedBo/easy-chat/pkg/mapstructure"
 	"github.com/go-playground/validator/v10"
-	"github.com/mitchellh/mapstructure"
 )
 
 func init() {
