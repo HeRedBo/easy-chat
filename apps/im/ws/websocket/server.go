@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/HeRedBo/easy-chat/apps/im/ws/validator"
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/threading"
@@ -44,6 +45,7 @@ type Server struct {
 
 	authentication Authentication
 	routes         map[string]HandlerFunc
+	validator      *validator.Validator
 	addr           string
 
 	connToUser map[*Conn]string
@@ -55,9 +57,11 @@ type Server struct {
 
 func NewServer(addr string, opts ...ServerOptions) *Server {
 	opt := NewServerOption(opts...)
+
 	return &Server{
 		addr:           addr,
 		authentication: opt.Authentication,
+		validator:      validator.NewValidator(),
 
 		connToUser: make(map[*Conn]string),
 		userToConn: make(map[string]*Conn),
@@ -152,6 +156,13 @@ func (s *Server) handlerConn(conn *Conn) {
 		err = json.Unmarshal(msg, &message)
 		if err != nil {
 			s.Errorf("json unmarshal err %v, msg %v", err, string(msg))
+			_ = s.Send(NewErrMessage(err), conn)
+			continue
+		}
+
+		// 数据验证
+		if err := s.validator.Validate(&message); err != nil {
+			s.Errorf("message validate err: %v", err)
 			_ = s.Send(NewErrMessage(err), conn)
 			continue
 		}
