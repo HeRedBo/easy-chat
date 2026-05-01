@@ -42,6 +42,6 @@ func (l *DetailLogic) Detail(req *types.UserInfoReq) (resp *types.UserInfoResp, 
 	}
 	var res types.User
 	copier.Copy(&res, userInfoResp.User)
-	respx.SetSuccessMsg("获取用户信息成功")
+	respx.SetSuccessMsg(l.ctx, "获取用户信息成功")
 	return &types.UserInfoResp{Info: res}, nil
 }

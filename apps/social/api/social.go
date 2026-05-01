@@ -14,6 +14,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/handler"
 	"github.com/HeRedBo/easy-chat/apps/social/api/internal/svc"
 	"github.com/HeRedBo/easy-chat/pkg/configserver"
+	"github.com/HeRedBo/easy-chat/pkg/respx"
 	"github.com/HeRedBo/easy-chat/pkg/resultx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
@@ -58,6 +59,10 @@ func Run(c config.Config) {
 
 	httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
 	httpx.SetOkHandler(resultx.OkHandler)
+
+	// 添加 Request ID 中间件（必须在 Cleanup 之前）
+	server.Use(respx.RequestIDMiddleware())
+	server.Use(respx.Cleanup())
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	// 3. 监听退出信号（SIGINT/SIGTERM），实现优雅关闭

@@ -9,10 +9,10 @@ type Response struct {
 }
 
 // Ok 成功返回
-func Ok(_ context.Context, data interface{}) *Response {
+func Ok(ctx context.Context, data interface{}) *Response {
 	return &Response{
 		Code:    Success,
-		Message: GetSuccessMsg(),
+		Message: GetSuccessMsg(ctx),
 		Data:    data,
 	}
 }

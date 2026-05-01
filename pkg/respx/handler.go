@@ -20,13 +20,13 @@ import (
 type successMsgKey struct{}
 
 // SetSuccessMsg 存储当前请求的成功消息
-func SetSuccessMsg(msg string) {
-	storex.Set(successMsgKey{}, msg)
+func SetSuccessMsg(ctx context.Context, msg string) {
+	storex.Set(ctx, successMsgKey{}, msg)
 }
 
 // GetSuccessMsg 获取当前请求的成功消息
-func GetSuccessMsg() string {
-	v, ok := storex.Get(successMsgKey{})
+func GetSuccessMsg(ctx context.Context) string {
+	v, ok := storex.Get(ctx, successMsgKey{})
 	if !ok {
 		return "success"
 	}
@@ -41,7 +41,32 @@ func GetSuccessMsg() string {
 func Cleanup() rest.Middleware {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			defer storex.Clean()
+			defer storex.Clean(r.Context())
+			next(w, r)
+		}
+	}
+}
+
+// RequestIDMiddleware 生成并注入 Request ID
+func RequestIDMiddleware() rest.Middleware {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// 优先使用客户端传来的 X-Request-ID（如果有）
+			reqID := r.Header.Get("X-Request-ID")
+			if reqID == "" {
+				reqID = storex.GenerateRequestID()
+			}
+
+			// 将 Request ID 注入到 context 中
+			ctx := context.WithValue(r.Context(), storex.RequestIDKey{}, reqID)
+			r = r.WithContext(ctx)
+
+			// 将 Request ID 添加到响应头
+			w.Header().Set("X-Request-ID", reqID)
+
+			// 请求结束后清理数据
+			defer storex.CleanupByReqID(reqID)
+
 			next(w, r)
 		}
 	}

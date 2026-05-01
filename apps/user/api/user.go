@@ -93,6 +93,8 @@ func Run(c config.Config) {
 
 	// 统一返回格式
 	respx.Register()
+	// 添加 Request ID 中间件（必须在 Cleanup 之前）
+	server.Use(respx.RequestIDMiddleware())
 	server.Use(respx.Cleanup())
 	//httpx.SetErrorHandlerCtx(resultx.ErrHandler(c.Name))
 	// httpx.SetOkHandler(resultx.OkHandler)
