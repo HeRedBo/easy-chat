@@ -28,5 +28,7 @@ func (c *msgReadChatTransferClient) Push(msg *mq.MsgMarkRead) error {
 		return err
 	}
 
-	return c.pusher.Push(context.Background(), string(body))
+	// 使用 ConversationId 作为 key，保证同一会话的已读回执路由到同一 partition
+	// 避免同一会话的已读消息乱序处理
+	return c.pusher.PushWithKey(context.Background(), msg.ConversationId, string(body))
 }

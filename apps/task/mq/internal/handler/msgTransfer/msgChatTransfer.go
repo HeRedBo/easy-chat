@@ -35,16 +35,20 @@ func (m *MsgChatTransfer) Consume(ctx context.Context, key, value string) error 
 		MsgId = bson.NewObjectID()
 	)
 	if err := json.Unmarshal([]byte(value), &data); err != nil {
-		return err
+		// 消息格式错误，无法解析，属于致命错误，不重试
+		m.Errorf("Failed to unmarshal message: %v", err)
+		return nil // 返回 nil，避免无限重试
 	}
 
-	// 记录数据
+	// 记录数据（必须成功，属于致命错误）
 	if err := m.addChatLog(ctx, MsgId, &data); err != nil {
+		// 数据库写入失败，返回 error，消息会重新消费
+		m.Errorf("Failed to add chat log: %v", err)
 		return err
 	}
 
-	// 推送消息
-	return m.Transfer(ctx, &ws.Push{
+	// 推送消息（非致命错误，失败不影响消息持久化）
+	if err := m.Transfer(ctx, &ws.Push{
 		ConversationId: data.ConversationId,
 		ChatType:       data.ChatType,
 		SendId:         data.SendId,
@@ -55,7 +59,14 @@ func (m *MsgChatTransfer) Consume(ctx context.Context, key, value string) error 
 		MsgId:          MsgId.Hex(),
 		MsgKind:        constants.MsgKindChat,
 		Content:        data.Content,
-	})
+	}); err != nil {
+		// WebSocket 推送失败，但消息已持久化到 MongoDB
+		// 用户上线时可通过拉取接口获取未读消息，因此返回 nil
+		m.Errorf("Failed to push message to user (but message saved): %v", err)
+	}
+
+	// 消息已持久化，标记为处理完成
+	return nil
 }
 
 func (m *MsgChatTransfer) addChatLog(ctx context.Context, MsgId bson.ObjectID, data *mq.MsgChatTransfer) error {

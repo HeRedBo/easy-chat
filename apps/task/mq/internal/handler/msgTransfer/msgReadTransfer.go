@@ -60,12 +60,16 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 	var data mq.MsgMarkRead
 
 	if err := json.Unmarshal([]byte(value), &data); err != nil {
-		return err
+		// 消息格式错误，无法解析，属于致命错误，不重试
+		m.Errorf("Failed to unmarshal message: %v", err)
+		return nil // 返回 nil，避免无限重试
 	}
 
-	// 更新消息聊天记录中的已读状态
+	// 更新消息聊天记录中的已读状态（必须成功，属于致命错误）
 	ReadRecords, err := m.UpdateChatLogRead(ctx, &data)
 	if err != nil {
+		// 数据库更新失败，返回 error，消息会重新消费
+		m.Errorf("Failed to update chat log read status: %v", err)
 		return err
 	}
 
@@ -79,15 +83,27 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 		ReadRecords:    ReadRecords,
 	}
 
+	// 推送已读回执（非致命错误，失败不影响已读状态持久化）
 	switch data.ChatType {
 	case constants.SingleChatType:
 		// 直接推送
-		m.push <- push
+		select {
+		case m.push <- push:
+			// 推送成功
+		default:
+			// channel 满了，丢弃该推送（已读状态已保存）
+			m.Errorf("Push channel full, dropping single chat read ack")
+		}
 
 	case constants.GroupChatType:
 		// 判断是否开启合并消息的处理
 		if m.svcCtx.Config.MsgReadHandler.GroupMsgReadHandler == GroupMsgReadHandlerAtTransfer {
-			m.push <- push
+			select {
+			case m.push <- push:
+				// 推送成功
+			default:
+				m.Errorf("Push channel full, dropping group chat read ack")
+			}
 		}
 		m.mu.Lock()
 		defer m.mu.Unlock()

@@ -29,7 +29,7 @@ MsgChatTransfer:
   Group: kafka
   Topic: msgChatTransfer
   Offset: first # "first" | "last"
-  Consumers: 1
+  Consumers: 4  # 从 1 调整为 4，提升并发处理能力（需确保 Kafka topic partitions >= 4）
 
 MsgReadTransfer:
   Name: MsgReadTransfer
@@ -38,7 +38,7 @@ MsgReadTransfer:
   Group: kafka
   Topic: msgReadTransfer
   Offset: first
-  Consumers: 1
+  Consumers: 4  # 从 1 调整为 4，提升并发处理能力
 
 MsgReadHandler:
   GroupMsgReadHandler: 1
