@@ -87,23 +87,12 @@ func (m *MsgReadTransfer) Consume(ctx context.Context, key, value string) error 
 	switch data.ChatType {
 	case constants.SingleChatType:
 		// 直接推送
-		select {
-		case m.push <- push:
-			// 推送成功
-		default:
-			// channel 满了，丢弃该推送（已读状态已保存）
-			m.Errorf("Push channel full, dropping single chat read ack")
-		}
+		m.push <- push
 
 	case constants.GroupChatType:
 		// 判断是否开启合并消息的处理
 		if m.svcCtx.Config.MsgReadHandler.GroupMsgReadHandler == GroupMsgReadHandlerAtTransfer {
-			select {
-			case m.push <- push:
-				// 推送成功
-			default:
-				m.Errorf("Push channel full, dropping group chat read ack")
-			}
+			m.push <- push
 		}
 		m.mu.Lock()
 		defer m.mu.Unlock()
