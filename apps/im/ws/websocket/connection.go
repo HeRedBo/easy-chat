@@ -55,11 +55,17 @@ func NewConn(s *Server, w http.ResponseWriter, r *http.Request) *Conn {
 
 func (c *Conn) ReadMessage() (messageType int, p []byte, err error) {
 	messageType, p, err = c.Conn.ReadMessage()
+	c.idleMu.Lock()
+	defer c.idleMu.Unlock()
+
 	c.idle = time.Time{}
 	return messageType, p, err
 }
 
 func (c *Conn) WriteMessage(messageType int, p []byte) error {
+	c.idleMu.Lock()
+	defer c.idleMu.Unlock()
+
 	err := c.Conn.WriteMessage(messageType, p)
 	c.idle = time.Time{}
 	return err
