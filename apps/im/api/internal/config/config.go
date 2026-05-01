@@ -4,6 +4,7 @@
 package config
 
 import (
+	"github.com/HeRedBo/easy-chat/pkg/zrpcx"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
@@ -14,6 +15,8 @@ type Config struct {
 	ImRpc     zrpc.RpcClientConf
 	SocialRpc zrpc.RpcClientConf
 	UserRpc   zrpc.RpcClientConf
+
+	RpcRetry map[string]zrpcx.RetryPolicy `json:",optional"`
 
 	JwtAuth struct {
 		AccessSecret string

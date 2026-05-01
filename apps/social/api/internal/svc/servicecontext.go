@@ -9,26 +9,10 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/userclient"
 	"github.com/HeRedBo/easy-chat/pkg/interceptor"
+	"github.com/HeRedBo/easy-chat/pkg/zrpcx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc"
-	"google.golang.org/grpc"
 )
-
-var retryPolicy = `{
-  "methodConfig": [{
-	"name": [{
-		"service": "social.social"
-	}],
-	"waitForReady": true,
-	"retryPolicy": {
-	   "MaxAttempts": 5,
-	   "InitialBackoff": "1s",
-	   "MaxBackoff": "1s",
-	   "BackoffMultiplier": 1.0,
-	   "RetryableStatusCodes": ["UNKNOWN", "DEADLINE_EXCEEDED"]
-	}
-  }]
-}`
 
 type ServiceContext struct {
 	Config config.Config
@@ -39,14 +23,15 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	retryOpt := zrpcx.BuildGlobalRetryOption(c.RpcRetry)
 	return &ServiceContext{
 		Config: c,
 		Redis:  redis.MustNewRedis(c.Redisx),
-		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc)),
+		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc, retryOpt)),
 		Social: socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc,
 			zrpc.WithUnaryClientInterceptor(interceptor.DefaultIdempotentClient),
-			zrpc.WithDialOption(grpc.WithDefaultServiceConfig(retryPolicy)),
+			retryOpt,
 		)),
-		Im: imclient.NewIm(zrpc.MustNewClient(c.Imrpc)),
+		Im: imclient.NewIm(zrpc.MustNewClient(c.Imrpc, retryOpt)),
 	}
 }

@@ -7,6 +7,15 @@ SocialRpc:
       - 127.0.0.1:2379
     Key: social.rpc
 
+RpcRetry:
+  social.social:
+    MaxAttempts: 3
+    InitialBackoff: "100ms"
+    MaxBackoff: "1s"
+    BackoffMultiplier: 2.0
+    RetryableStatusCodes:
+      - UNAVAILABLE
+
 Mysql:
   DataSource: root:root@tcp(127.0.0.1:3306)/easy-chat?charset=utf8mb4&parseTime=true&loc=Local
   MaxOpenConns: 10 # 最大打开连接数

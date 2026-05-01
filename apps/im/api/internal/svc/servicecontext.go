@@ -8,6 +8,7 @@ import (
 	"github.com/HeRedBo/easy-chat/apps/im/rpc/imclient"
 	"github.com/HeRedBo/easy-chat/apps/social/rpc/socialclient"
 	"github.com/HeRedBo/easy-chat/apps/user/rpc/userclient"
+	"github.com/HeRedBo/easy-chat/pkg/zrpcx"
 	"github.com/zeromicro/go-zero/zrpc"
 )
 
@@ -19,10 +20,11 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	retryOpt := zrpcx.BuildGlobalRetryOption(c.RpcRetry)
 	return &ServiceContext{
 		Config: c,
-		Im:     imclient.NewIm(zrpc.MustNewClient(c.ImRpc)),
-		Social: socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc)),
-		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc)),
+		Im:     imclient.NewIm(zrpc.MustNewClient(c.ImRpc, retryOpt)),
+		Social: socialclient.NewSocial(zrpc.MustNewClient(c.SocialRpc, retryOpt)),
+		User:   userclient.NewUser(zrpc.MustNewClient(c.UserRpc, retryOpt)),
 	}
 }

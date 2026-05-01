@@ -20,6 +20,29 @@ UserRpc:
       - 127.0.0.1:2379
     Key: user.rpc
 
+RpcRetry:
+  im.Im:
+    MaxAttempts: 3
+    InitialBackoff: "100ms"
+    MaxBackoff: "1s"
+    BackoffMultiplier: 2.0
+    RetryableStatusCodes:
+      - UNAVAILABLE
+  social.social:
+    MaxAttempts: 3
+    InitialBackoff: "100ms"
+    MaxBackoff: "1s"
+    BackoffMultiplier: 2.0
+    RetryableStatusCodes:
+      - UNAVAILABLE
+  user.User:
+    MaxAttempts: 3
+    InitialBackoff: "100ms"
+    MaxBackoff: "1s"
+    BackoffMultiplier: 2.0
+    RetryableStatusCodes:
+      - UNAVAILABLE
+
 JwtAuth:
   AccessSecret: redbo.com
   AccessExpire: 8640000
