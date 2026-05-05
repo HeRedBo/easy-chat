@@ -190,7 +190,7 @@ func (d *defaultIdempotent) TryAcquire(ctx context.Context, id string) (resp int
 	return nil, true, nil
 }
 
-// SaveResp 执行之后结果的保存
+// SaveResp 执行之后结果的保存，并主动释放锁
 func (d *defaultIdempotent) SaveResp(ctx context.Context, id string, resp interface{}, respErr error) error {
 	status := statusSuccess
 	if respErr != nil {
@@ -205,7 +205,9 @@ func (d *defaultIdempotent) SaveResp(ctx context.Context, id string, resp interf
 		"data":   string(data),
 		"error":  fmt.Sprintf("%v", respErr),
 	})
-	_ = d.Redis.ExpireCtx(ctx, id, int(resultTTL))
+	_ = d.Redis.ExpireCtx(ctx, id, int(resultTTL.Seconds()))
+	// 结果已保存，主动释放锁（不再依赖 TTL 自动过期）
+	_, _ = d.Redis.DelCtx(ctx, id+":lock")
 	return nil
 }
 
